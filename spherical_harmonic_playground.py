@@ -50,7 +50,7 @@ def _spherical_harmonics(l: int, m: int) -> sp.Poly:
           * sp.factorial(l - 2 * k)
           / sp.factorial(l - 2 * k - m)
           * z ** (l - 2 * k - m)
-          * r2**k
+          * r2**k # this is kinda sus see https://github.com/google-research/e3x/issues/22
       )
     return sp.sqrt(sp.factorial(l - m) / sp.factorial(l + m)) * pi
 
