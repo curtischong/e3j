@@ -16,7 +16,7 @@ import e3nn_jax as e3nn
 
 from graph_utils import radius_graph
 from irrep import Irreps
-from spherical_harmonic import map_to_spherical_harmonic
+from spherical_harmonic import map_feat_to_spherical_harmonic
 
 
 def tetris() -> jraph.GraphsTuple:
@@ -79,7 +79,7 @@ class Layer(flax.linen.Module):
 
 
             # this only maps a 3D vector to a spherical harmonic but what about higher dimensional inputs?
-            sh = map_to_spherical_harmonic(
+            sh = map_feat_to_spherical_harmonic(
                 largest_l,
                 features,
                 normalize=True,
