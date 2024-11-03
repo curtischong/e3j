@@ -6,6 +6,8 @@ import sympy as sp
 # you can find usages of _spherical_harmonics by searching for: from ._symbolic import _spherical_harmonics
 # or just go to usages on the definition. the linter is broken since it says it's not used since it has a _ in the file, but it's not directly used in that file
 
+
+# here is the math: https://e3x.readthedocs.io/stable/_autosummary/e3x.so3.irreps.spherical_harmonics.html
 def _spherical_harmonics(l: int, m: int) -> sp.Poly:
   """Real Cartesian spherical harmonics.
 
@@ -24,16 +26,16 @@ def _spherical_harmonics(l: int, m: int) -> sp.Poly:
     of degree l and order m.
   """
 
-  def a(m: int, x: sp.Symbol, y: sp.Symbol) -> sp.Symbol:
+  def B(m: int, x: sp.Symbol, y: sp.Symbol) -> sp.Symbol:
     a = sp.S(0)
-    for p in range(m + 1):
-      a += sp.binomial(m, p) * x**p * y ** (m - p) * sp.cos((m - p) * sp.pi / 2)
+    for k in range(m + 1):
+      a += sp.binomial(m, k) * x**k * y ** (m - k) * sp.cos((m - k) * sp.pi / 2)
     return a
 
-  def b(m: int, x: sp.Symbol, y: sp.Symbol) -> sp.Symbol:
+  def A(m: int, x: sp.Symbol, y: sp.Symbol) -> sp.Symbol:
     b = sp.S(0)
-    for p in range(m + 1):
-      b += sp.binomial(m, p) * x**p * y ** (m - p) * sp.sin((m - p) * sp.pi / 2)
+    for k in range(m + 1):
+      b += sp.binomial(m, k) * x**k * y ** (m - k) * sp.sin((m - k) * sp.pi / 2)
     return b
 
   def pi(l: int, m: int, x: sp.Symbol, y: sp.Symbol, z: sp.Symbol) -> sp.Symbol:
@@ -53,10 +55,10 @@ def _spherical_harmonics(l: int, m: int) -> sp.Poly:
     return sp.sqrt(sp.factorial(l - m) / sp.factorial(l + m)) * pi
 
   x, y, z = sp.symbols('x y z')
-  if m > 0:
-    ylm = sp.sqrt(2) * pi(l, m, x, y, z) * a(m, x, y)
-  elif m < 0:
-    ylm = sp.sqrt(2) * pi(l, -m, x, y, z) * b(-m, x, y)
+  if m < 0:
+    ylm = sp.sqrt(2) * pi(l, -m, x, y, z) * A(-m, x, y)
+  elif m > 0:
+    ylm = sp.sqrt(2) * pi(l, m, x, y, z) * B(m, x, y)
   else:
     ylm = pi(l, m, x, y, z)
 
