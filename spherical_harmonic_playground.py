@@ -64,11 +64,12 @@ def _spherical_harmonics(l: int, m: int) -> sp.Poly:
 
   return sp.Poly(sp.simplify(ylm), x, y, z)
 
+if __name__ == "__main__":
+  print(_spherical_harmonics(0, 0))
+  print(_spherical_harmonics(1, 0))
+  print(_spherical_harmonics(1, 0)(1,0,1))
 
-print(_spherical_harmonics(0, 0))
-print(_spherical_harmonics(1, 0))
-print(_spherical_harmonics(1, 0)(1,0,1))
+  print(_spherical_harmonics(3, 2))
+  print(_spherical_harmonics(3, 3)) # what does domain EX mean? it just means that it's an expression (if the polynomial's coefficients are integers, it's zz - this happens when the expression is a constant like 1 or a monomial like z - since z = 1*z)
 
-print(_spherical_harmonics(3, 2))
-print(_spherical_harmonics(3, 3)) # what does domain EX mean? it just means that it's an expression (if the polynomial's coefficients are integers, it's zz - this happens when the expression is a constant like 1 or a monomial like z - since z = 1*z)
-
+  print(_spherical_harmonics(2, 2).terms())

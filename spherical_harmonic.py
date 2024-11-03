@@ -13,6 +13,7 @@ def map_feat_to_spherical_harmonic(largest_l: int, features: jnp.ndarray, normal
 
 # returns a function that you can pass x,y,z into to get the spherical harmonic
 def spherical_harmonics(l: int, m: int) -> jnp.ndarray:
+    # TODO: use the one in spherical_harmonic_playground.py?
     pass
 
 def tensor_product(irrep1: jnp.ndarray, irrep2: jnp.ndarray) -> jnp.ndarray:
