@@ -15,3 +15,7 @@ my_term = sp.Poly(sp.S(5) + x + 2.5*y)
 #   1 indicates the coefficient is 1
 print(my_term)
 print(my_term.terms())
+for monomial, coefficient in my_term.terms():
+    print("Monomial:", monomial)
+    print("Coefficient:", coefficient)
+    print()
