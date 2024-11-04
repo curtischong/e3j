@@ -11,10 +11,16 @@ from spherical_harmonic_playground import _spherical_harmonics
 # I am using the spherical harmonics definition from e3x
 def map_feat_to_spherical_harmonic(largest_l: int, features: jnp.ndarray, normalize: bool) -> jnp.ndarray:
     irreps_l = list(range(1, largest_l + 1))
-    return jnp.array([1])
+    coefficients = []
+    for l in irreps_l:
+        feats = []
+        for m in range(-l, l + 1):
+            feats.append(spherical_harmonics(l, m)(features))
+        coefficients.append(jnp.array(feats))
+    return jnp.array(coefficients)
 
 # returns a function that you can pass x,y,z into to get the spherical harmonic
-def spherical_harmonics(l: int, m: int) -> jnp.ndarray:
+def spherical_harmonics(l: int, m: int) -> sp.Poly:
     # TODO: cache the polynomials?
     return _spherical_harmonics(l, m)
 
