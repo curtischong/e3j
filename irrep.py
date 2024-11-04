@@ -1,3 +1,4 @@
+import jax.numpy as jnp
 import dataclasses
 # https://e3x.readthedocs.io/stable/overview.html
 # this page is pretty informative^
@@ -66,3 +67,9 @@ class Irreps():
             
 # print(Irreps("2x0e + 1o").irreps)
 assert(Irreps("2x0e + 1o").irreps == [MulIrrep(2, Irrep(0, 1)), MulIrrep(1, Irrep(1, -1))])
+
+
+@dataclasses.dataclass()
+class IrrepsArray():
+    irreps: Irreps
+    array: jnp.ndarray
