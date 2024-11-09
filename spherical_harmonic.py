@@ -29,6 +29,7 @@ def spherical_harmonics(l: int, m: int) -> sp.Poly:
     return _spherical_harmonics(l, m)
 
 def tensor_product(irrep1: jnp.ndarray, irrep2: jnp.ndarray) -> jnp.ndarray:
+    for 
     pass
 
 
