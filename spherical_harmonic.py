@@ -28,9 +28,10 @@ def spherical_harmonics(l: int, m: int) -> sp.Poly:
     # TODO: cache the polynomials?
     return _spherical_harmonics(l, m)
 
-def tensor_product(irrep1: jnp.ndarray, irrep2: jnp.ndarray) -> jnp.ndarray:
-    for 
-    pass
+def tensor_product(irrep1: IrrepsArray, irrep2: IrrepsArray, output_l: int) -> jnp.ndarray:
+    l1 = irrep1.irreps.l
+    l2 = irrep2.irreps.l
+
 
 
 if __name__ == "__main__":
