@@ -4,7 +4,7 @@ import sympy as sp
 
 from irrep import Irrep
 from spherical_harmonic_playground import _spherical_harmonics
-from constants import ODD_PARITY, default_dtype
+from constants import ODD_PARITY, EVEN_PARITY, default_dtype
 
 # map the point to the specified spherical harmonic. normally, when irreps are passed around,
 # we need to map the coords to EACH irrep
@@ -13,7 +13,7 @@ from constants import ODD_PARITY, default_dtype
 # I am using the spherical harmonics definition from e3x
 
 # This is like scatter sum but for feats?
-def map_3d_feats_to_spherical_harmonics(feats_3d: list[list[float]], normalize: bool=False) -> Irrep:
+def map_3d_feats_to_spherical_harmonics_repr(feats_3d: list[list[float]], normalize: bool=False) -> Irrep:
     coefficients = []
     # jnp.zeros((num_car, num_sph), dtype=np.float64),
     for feat in feats_3d:
@@ -29,8 +29,9 @@ def map_3d_feats_to_spherical_harmonics(feats_3d: list[list[float]], normalize: 
 
 # what is a good way to store the features?
 # I think we should just store the features as a jnp array
-def map_1d_feats_to_spherical_harmonics(feats_1d: list[jnp.ndarray]) -> Irrep:
-    return jnp.array(feats_1d)
+def map_1d_feats_to_spherical_harmonics_repr(feats_1d: list[jnp.ndarray]) -> Irrep:
+    arr = jnp.array(feats_1d, dtype=default_dtype)
+    return Irrep(arr, EVEN_PARITY) # 1D features are even parity by default (cause scalars are invariant even if you rotate/flip them. e.g. the total energy of a system is invariant to those transformations)
 
 # # returns a function that you can pass x,y,z into to get the spherical harmonic
 # def spherical_harmonics(l: int, m: int, x: int, y:int, z:int) -> sp.Poly:
@@ -49,4 +50,4 @@ if __name__ == "__main__":
         [0, 0, 4],
     ]
     
-    print(map_3d_feats_to_spherical_harmonics(distances))
+    print(map_3d_feats_to_spherical_harmonics_repr(distances))
