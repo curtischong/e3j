@@ -15,12 +15,14 @@ from constants import ODD_PARITY, EVEN_PARITY, default_dtype
 # This is like scatter sum but for feats?
 def map_3d_feats_to_spherical_harmonics_repr(feats_3d: list[list[float]], normalize: bool=False) -> Irrep:
     coefficients = []
-    # jnp.zeros((num_car, num_sph), dtype=np.float64),
     for feat in feats_3d:
-        feats = []
-        l = 1 # l=1 since we're dealing with 3D features
-        for m in range(-l, l + 1):
-            feats.append(_spherical_harmonics(l, m)(*feat))
+        # we are arranging the feats NOT in cartesian order: https://e3x.readthedocs.io/stable/pitfalls.html
+        feats = [] # this is a 1D array of all the spherical harmonics features
+        max_l = 1 # l=1 since we're dealing with 3D features
+
+        for l in range(max_l + 1):
+            for m in range(-l, l + 1):
+                feats.append(_spherical_harmonics(l, m)(*feat))
         coefficients.append(feats)
     arr = jnp.array(coefficients, dtype=default_dtype)
 
@@ -37,10 +39,6 @@ def map_1d_feats_to_spherical_harmonics_repr(feats_1d: list[jnp.ndarray]) -> Irr
 # def spherical_harmonics(l: int, m: int, x: int, y:int, z:int) -> sp.Poly:
 #     # TODO: cache the polynomials?
 #     return _spherical_harmonics(l, m)
-
-def tensor_product(irrep1: Irrep, irrep2: Irrep, output_l: int) -> jnp.ndarray:
-    l1 = irrep1.irreps.l
-    l2 = irrep2.irreps.l
 
 
 

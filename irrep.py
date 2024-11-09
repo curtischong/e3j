@@ -1,5 +1,7 @@
+from __future__ import annotations
 import jax.numpy as jnp
 import dataclasses
+from jaxtyping import Float, Array
 # https://e3x.readthedocs.io/stable/overview.html
 # this page is pretty informative^
 
@@ -37,3 +39,10 @@ class Irrep():
     # this is the number of times the irrep is repeated
     def multiplicity(self):
         return self.array.shape[-1]
+
+    def get_xyz_vectors(self) -> Float[Array, "n 3"]:
+        # since we are NOT using cartesian order (see https://e3x.readthedocs.io/stable/pitfalls.html), we need to rearrange the array
+        y = self.array[:,1]
+        z = self.array[:,2]
+        x = self.array[:,3]
+        return jnp.stack([x, y, z], axis=1)
