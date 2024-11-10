@@ -4,6 +4,7 @@ import sympy as sp
 
 import e3x
 from irrep import Irrep
+from parity import parity_for_l, parity_to_parity_idx
 from spherical_harmonics_playground import _spherical_harmonics
 from constants import ODD_PARITY_IDX, EVEN_PARITY, default_dtype
 import numpy as np
@@ -39,7 +40,11 @@ def map_3d_feats_to_spherical_harmonics_repr(feats_3d: list[list[float]], normal
 
                 coefficient = float(_spherical_harmonics(l, m)(*feat))
                 # coefficient = float(e3x.so3._symbolic._spherical_harmonics(l, m)(*feat))
-                arr = arr.at[ODD_PARITY_IDX, Irrep.coef_idx(l,m), ith_feat].set(coefficient)
+
+                # https://chatgpt.com/share/67306530-4680-800e-b259-fd767593126c
+                # be careful to assign the right parity to the coefficients!
+                parity_idx = parity_to_parity_idx(parity_for_l(l))
+                arr = arr.at[parity_idx, Irrep.coef_idx(l,m), ith_feat].set(coefficient)
 
                 # feats.append(_spherical_harmonics(l, m)(*feat))
         # arr = arr.at[num_coefficients_per_feat].set(feats)

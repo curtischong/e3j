@@ -1,20 +1,9 @@
 from clebsch_gordan import get_clebsch_gordan
-from constants import EVEN_PARITY, EVEN_PARITY_IDX, NUM_PARITY_DIMS, ODD_PARITY, ODD_PARITY_IDX, PARITY_IDXS
+from constants import EVEN_PARITY, EVEN_PARITY_IDX, NUM_PARITY_DIMS, ODD_PARITY_IDX, PARITY_IDXS
+from parity import parity_idx_to_parity, parity_to_parity_idx
 from irrep import Irrep
 import jax.numpy as jnp
 
-
-def parity_idx_to_partiy(parity_idx: int) -> int:
-    # return parity_idx // 2
-    if parity_idx == EVEN_PARITY_IDX:
-        return EVEN_PARITY
-    else:
-        return ODD_PARITY
-    
-    # if you wanted to remove the if statements and get the parity as fast as possible, you could do this:
-    # return parity_idx*(-2) + 1
-    #    when parity_idx is even, we are returning 0 + 1
-    #    when parity_idx is odd, we are returning 1*(-2) + 1 = -1
 
 def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_output_l: int) -> jnp.ndarray:
     max_l1 = irrep1.l()
@@ -40,14 +29,11 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_output_l: int) -> jnp.nd
                     print(f"feat1={irrep1.get_ith_feature(parity1_idx, feat1_idx)}, feat2={irrep2.get_ith_feature(parity2_idx, feat2_idx)}")
 
                     feat3_idx = feat1_idx * num_irrep2_feats + feat2_idx
-                    parity3 = parity_idx_to_partiy(parity1_idx) * parity_idx_to_partiy(parity2_idx)
-                    if parity3 == EVEN_PARITY:
-                        parity3_idx = EVEN_PARITY_IDX
-                    else:
-                        parity3_idx = ODD_PARITY_IDX
+                    parity3 = parity_idx_to_parity(parity1_idx) * parity_idx_to_parity(parity2_idx)
+                    parity3_idx = parity_to_parity_idx(parity3)
 
                     # for each of the features in irrep1 and irrep2, calculate the tensor product
-                    for l3 in range(max_output_l):
+                    for l3 in range(max_output_l + 1):
                         for m3 in range(-l3, l3 + 1):
                             coef_idx = Irrep.coef_idx(l3, m3)
 
