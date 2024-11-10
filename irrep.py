@@ -56,8 +56,8 @@ class Irrep():
         return self.array[parity_idx, self.coef_idx(l,m) , ith_feature]
 
     # returns true if there is no feature at the given parity and index i
-    def is_feature_zero(self, parity: int, ith_feature: int) -> bool:
-        subset = self.array[parity, ith_feature]
+    def is_feature_zero(self, parity_idx: int, ith_feature: int) -> bool:
+        subset = self.array[parity_idx, ith_feature]
         return jnp.all(subset == 0)
 
     # Note: you only use this for predicting outputs I believe. cause it's kinda sus to just throw out all other coefficients, especially the l=0 coefficient

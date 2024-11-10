@@ -1,8 +1,20 @@
 from clebsch_gordan import get_clebsch_gordan
-from constants import NUM_PARITY_DIMS, PARITY_IDXS
+from constants import EVEN_PARITY, EVEN_PARITY_IDX, NUM_PARITY_DIMS, ODD_PARITY, PARITY_IDXS
 from irrep import Irrep
 import jax.numpy as jnp
 
+
+def parity_idx_to_partiy(parity_idx: int) -> int:
+    # return parity_idx // 2
+    if parity_idx == EVEN_PARITY_IDX:
+        return EVEN_PARITY
+    else:
+        return ODD_PARITY
+    
+    # if you wanted to remove the if statements and get the parity as fast as possible, you could do this:
+    # return parity_idx*(-2) + 1
+    #    when parity_idx is even, we are returning 0 + 1
+    #    when parity_idx is odd, we are returning 1*(-2) + 1 = -1
 
 def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_output_l: int) -> jnp.ndarray:
     max_l1 = irrep1.l()
@@ -20,14 +32,14 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_output_l: int) -> jnp.nd
     out = jnp.zeros((NUM_PARITY_DIMS, num_coefficients_per_feat, num_output_feats), dtype=jnp.float32)
 
     for feat1_idx in range(num_irrep1_feats):
-        for parity1 in PARITY_IDXS:
-            for parity2 in PARITY_IDXS:
+        for parity1_idx in PARITY_IDXS:
+            for parity2_idx in PARITY_IDXS:
                 for feat2_idx in range(num_irrep2_feats):
-                    if irrep1.is_feature_zero(parity1, feat1_idx) or irrep2.is_feature_zero(parity2, feat2_idx):
+                    if irrep1.is_feature_zero(parity1_idx, feat1_idx) or irrep2.is_feature_zero(parity2_idx, feat2_idx):
                         continue
 
                     feat3_idx = feat1_idx * num_irrep2_feats + feat2_idx
-                    parity3 = parity1 * parity2
+                    parity3 = parity_idx_to_partiy(parity1_idx) * parity_idx_to_partiy(parity2_idx)
 
                     # for each of the features in irrep1 and irrep2, calculate the tensor product
                     for l3 in range(max_output_l):
@@ -39,8 +51,8 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_output_l: int) -> jnp.nd
                                 for l2 in range(max_l2):
                                     for m1 in range(-l1, l1 + 1):
                                         for m2 in range(-l2, l2 + 1):
-                                            v1 = irrep1.get_coefficient(parity1, feat1_idx, l1, m1)
-                                            v2 = irrep2.get_coefficient(parity2, feat2_idx, l2, m2)
+                                            v1 = irrep1.get_coefficient(parity1_idx, feat1_idx, l1, m1)
+                                            v2 = irrep2.get_coefficient(parity2_idx, feat2_idx, l2, m2)
                                             out = out.at[parity3, coef_idx, feat3_idx].add(get_clebsch_gordan(l1, l2, l3, m1, m2, m3)*v1*v2)
     return out
 
