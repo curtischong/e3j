@@ -2,7 +2,7 @@ from __future__ import annotations
 import jax.numpy as jnp
 import dataclasses
 from jaxtyping import Float, Array
-from constants import ODD_PARITY
+from constants import ODD_PARITY_IDX
 # https://e3x.readthedocs.io/stable/overview.html
 # this page is pretty informative^
 
@@ -48,17 +48,15 @@ class Irrep():
     def multiplicity(self):
         return self.array.shape[0][0][-1] # the number of features is defined in the the very last index
     
-    def get_coefficient(self, ith_feature: int, l: int, m: int) -> float:
+    def get_coefficient(self, parity_idx:int, ith_feature: int, l: int, m: int) -> float:
         start_idx_of_l = l**2 # there are l**2 - 1 coefficients for the lower levels of l. (since l=0 has 1 coefficient, l=1 has 3, l=2 has 5, etc)
-        return self.array[(start_idx_of_l) + m, ith_feature]
+        return self.array[parity_idx, start_idx_of_l + m, ith_feature]
 
     # returns true if there is no feature at the given parity and index i
     def is_feature_zero(self, parity: int, ith_feature: int) -> bool:
         subset = self.array[parity, ith_feature]
         return jnp.all(subset == 0)
 
-    EVEN_PARITY_IDX = 0
-    ODD_PARITY_IDX = 1
     # Note: you only use this for predicting outputs I believe. cause it's kinda sus to just throw out all other coefficients, especially the l=0 coefficient
     # But also I think this is a bad way of predicitng outputs? I think summing across all coefficients is better. I'm only leaving this in here
     # to document the fact that we are NOT using cartesian order, and the e3x docs said you can get the vector representation by using these indices
@@ -66,7 +64,7 @@ class Irrep():
         assert self.array.shape[0][0] >= 4, f"This irrep doesn't have enough coefficients to get the xyz vectors. it only has {self.array.shape[0][0]} coefficients"
 
         # since we are NOT using cartesian order (see https://e3x.readthedocs.io/stable/pitfalls.html), we need to rearrange the array
-        y = self.array[self.ODD_PARITY_IDX,1,:] # start at index=1 since that is the start of the coefficients of l=1
-        z = self.array[self.ODD_PARITY_IDX,2,:]
-        x = self.array[self.ODD_PARITY_IDX,3,:]
+        y = self.array[ODD_PARITY_IDX,1,:] # start at index=1 since that is the start of the coefficients of l=1
+        z = self.array[ODD_PARITY_IDX,2,:]
+        x = self.array[ODD_PARITY_IDX,3,:]
         return jnp.stack([x, y, z], axis=1)
