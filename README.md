@@ -34,5 +34,5 @@ for a given max L, we will always have one l=0 feature, one l=1 feature, one l=2
 
 
 
-THESE ARE the parity of the inputs for spherical harmonics that you specify:
+THESE ARE the parity of the inputs for spherical harmonics that you specify
     Irreps* irreps_sh = irreps_create("1x1o + 1x2e + 1x3o");

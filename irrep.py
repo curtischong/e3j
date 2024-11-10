@@ -23,29 +23,32 @@ from constants import ODD_PARITY
 
 @dataclasses.dataclass(init=False)
 class Irrep():
-    array: Float[Array, "num_feats (max_l+1)^2_coefficients"]
-    parity: int
+    array: Float[Array, "parity_index=2   coefficients_for_every_l_and_m=2*(max_l+1)^2  num_feats"]
+    # why can't we separate the dimensions for l and m? why are we indexing the coefficients in the coefficients_for_every_l_and_m dimension?
+    # it's because each l has different numbers of m. e.g. l=0 has 1 m, l=1 has 3, l=2 has 5, etc.
+    # if we used different indices for different l and m, the resulting array would look like a staircase, not a rectangle
+    # and jnumpy arrays must have the same size for each index
 
 
-    def __init__(self, array: jnp.ndarray, parity: int):
-        assert parity in {1, -1}, f"p (the parity of your representation) must be 1 (even) or -1 (odd). You passed in {parity}"
+
+    def __init__(self, array: jnp.ndarray):
+        assert array.shape[0] %2 == 0, f"index 0 is the parity index. it should be size 2. It's size {array.shape[0]}"
         self.array = array
-        self.parity = parity
 
     # calculate l based on the dimensions of the array
     def l(self):
         num_irrep_coefficients = self.array.shape[0][0]
-        return (num_irrep_coefficients - 1) // 2 # recall that 2l + 1 is the number of coefficients for that irrep
+
+        # recall that 2l + 1 = the number of coefficients for that irrep
+        # so 2l = num_irrep_coefficients - 1
+        # l = (num_irrep_coefficients - 1) // 2
+        return (num_irrep_coefficients - 1) // 2
 
     # this is the number of times the irrep is repeated
     def multiplicity(self):
-        return self.array.shape[-1]
+        return self.array.shape[0][0][-1] # the number of features is defined in the the very last index
     
     def get_coefficient(self, ith_feature: int, l: int, m: int) -> float:
-        # assert ith_feature < self.multiplicity(), f"The ith feature is out of bounds. The number of features is {self.multiplicity()}"
-        # assert l >= 0, f"l must be non-negative. You passed in {l}"
-        # assert m >= -l and m <= l, f"m must be between -l and l. You passed in {m}"
-
         start_idx_of_l = l**2 # there are l**2 - 1 coefficients for the lower levels of l. (since l=0 has 1 coefficient, l=1 has 3, l=2 has 5, etc)
         return self.array[(start_idx_of_l) + m, ith_feature]
 
