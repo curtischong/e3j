@@ -41,7 +41,7 @@ class Irrep():
 
     # calculate l based on the dimensions of the array
     def l(self):
-        num_irrep_coefficients = self.array.shape[0][0]
+        num_irrep_coefficients = self.array.shape[1]
 
         # recall that 2l + 1 = the number of coefficients for that irrep
         # so 2l = num_irrep_coefficients - 1
@@ -50,7 +50,7 @@ class Irrep():
 
     # this is the number of times the irrep is repeated
     def multiplicity(self):
-        return self.array.shape[0][0][-1] # the number of features is defined in the the very last index
+        return self.array.shape[2] # the number of features is defined in the the very last index
     
     def get_coefficient(self, parity_idx:int, ith_feature: int, l: int, m: int) -> float:
         return self.array[parity_idx, self.coef_idx(l,m) , ith_feature]

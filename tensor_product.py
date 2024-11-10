@@ -1,5 +1,5 @@
 from clebsch_gordan import get_clebsch_gordan
-from constants import NUM_PARITY_DIMS
+from constants import NUM_PARITY_DIMS, PARITY_IDXS
 from irrep import Irrep
 import jax.numpy as jnp
 
@@ -20,8 +20,8 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_output_l: int) -> jnp.nd
     out = jnp.zeros((NUM_PARITY_DIMS, num_coefficients_per_feat, num_output_feats), dtype=jnp.float32)
 
     for feat1_idx in range(num_irrep1_feats):
-        for parity1 in range(0,2):
-            for parity2 in range(0,2):
+        for parity1 in PARITY_IDXS:
+            for parity2 in PARITY_IDXS:
                 for feat2_idx in range(num_irrep2_feats):
                     if irrep1.is_feature_zero(parity1, feat1_idx) or irrep2.is_feature_zero(parity2, feat2_idx):
                         continue

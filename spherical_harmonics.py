@@ -20,6 +20,7 @@ import numpy as np
 # This means that two vectors of different lengths but facing the same direction will have the same representation
 def map_3d_feats_to_spherical_harmonics_repr(feats_3d: list[list[float]], normalize: bool=False) -> Irrep:
     num_feats = len(feats_3d)
+    assert type(feats_3d[0][0]) in [float, int], f"feats_3d must be a list of lists of floats. type(feats_3d[0][0])={type(feats_3d[0][0])}"
     max_l = 1 # l=1 since we're dealing with 3D features
     num_coefficients_per_feat = (max_l+1)**2 # l=0 has 1 coefficient, l=1 has 3. so 4 total coefficients
     arr = jnp.zeros((2, num_coefficients_per_feat, num_feats), dtype=default_dtype)

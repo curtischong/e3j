@@ -4,8 +4,8 @@ import jax.numpy as jnp
 from irrep import Irrep
 
 if __name__ == "__main__":
-    map_3d_feats_to_spherical_harmonics_repr(distances)
 
-    irrep1 = Irrep(jnp.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]]))
-    irrep2 = Irrep(jnp.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]]))
+    irrep1 = map_3d_feats_to_spherical_harmonics_repr([[1,1,1]])
+    irrep2 = map_3d_feats_to_spherical_harmonics_repr([[1,1,2]])
+
     print(tensor_product_v1(irrep1, irrep2, 2))
