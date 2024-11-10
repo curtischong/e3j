@@ -32,9 +32,9 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_output_l: int) -> jnp.nd
     out = jnp.zeros((NUM_PARITY_DIMS, num_coefficients_per_feat, num_output_feats), dtype=jnp.float32)
 
     for feat1_idx in range(num_irrep1_feats):
-        for parity1_idx in PARITY_IDXS:
-            for parity2_idx in PARITY_IDXS:
-                for feat2_idx in range(num_irrep2_feats):
+        for feat2_idx in range(num_irrep2_feats):
+            for parity1_idx in PARITY_IDXS:
+                for parity2_idx in PARITY_IDXS:
                     if irrep1.is_feature_zero(parity1_idx, feat1_idx) or irrep2.is_feature_zero(parity2_idx, feat2_idx):
                         continue
 
@@ -57,7 +57,9 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_output_l: int) -> jnp.nd
                                         for m2 in range(-l2, l2 + 1):
                                             v1 = irrep1.get_coefficient(parity1_idx, feat1_idx, l1, m1)
                                             v2 = irrep2.get_coefficient(parity2_idx, feat2_idx, l2, m2)
-                                            out = out.at[parity3_idx, coef_idx, feat3_idx].add(get_clebsch_gordan(l1, l2, l3, m1, m2, m3)*v1*v2)
+                                            cg = get_clebsch_gordan(l1, l2, l3, m1, m2, m3)
+                                            print(f"l1={l1}, l2={l2}, l3={l3}, m1={m1}, m2={m2}, m3={m3}, v1={v1}, v2={v2}, cg={cg}")
+                                            out = out.at[parity3_idx, coef_idx, feat3_idx].add(cg*v1*v2)
     return out
 
 
