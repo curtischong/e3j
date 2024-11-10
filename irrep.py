@@ -71,3 +71,6 @@ class Irrep():
         z = self.array[ODD_PARITY_IDX,2,:]
         x = self.array[ODD_PARITY_IDX,3,:]
         return jnp.stack([x, y, z], axis=1)
+    
+    def __repr__(self):
+        return str(self.array.tolist())
