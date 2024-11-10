@@ -16,7 +16,7 @@ if __name__ == "__main__":
     print(irrep1)
     print(irrep2)
 
-    print(tensor_product_v1(irrep1, irrep2, 2).tolist())
+    print(tensor_product_v1(irrep1, irrep2).tolist())
 
 
     e3nn_irrep1 = e3nn_jax.spherical_harmonics("1x0e + 1x1o", jnp.array(feat1), normalize=True, normalization="norm")

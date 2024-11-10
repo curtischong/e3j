@@ -5,7 +5,7 @@ from irrep import Irrep
 import jax.numpy as jnp
 
 
-def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_output_l: int) -> jnp.ndarray:
+def tensor_product_v1(irrep1: Irrep, irrep2: Irrep) -> jnp.ndarray:
     max_l1 = irrep1.l()
     max_l2 = irrep2.l()
 
@@ -15,9 +15,10 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_output_l: int) -> jnp.nd
     num_output_feats = num_irrep1_feats * num_irrep2_feats
     print(f"num_output_feats={num_output_feats}")
 
-    assert max_output_l <= max_l1 + max_l2 # I got this constraint from ecnn.c
+    l3_min = abs(max_l1 - max_l2)
+    l3_max = max_l1 + max_l2
 
-    num_coefficients_per_feat = (max_output_l+1)**2 # l=0 has 1 coefficient, l=1 has 3, l=2 has 5, etc. This formula gives the sum of all these coefficients
+    num_coefficients_per_feat = (l3_max+1)**2 # l=0 has 1 coefficient, l=1 has 3, l=2 has 5, etc. This formula gives the sum of all these coefficients
 
     out = jnp.zeros((NUM_PARITY_DIMS, num_coefficients_per_feat, num_output_feats), dtype=jnp.float32)
 
@@ -33,8 +34,9 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_output_l: int) -> jnp.nd
                     parity3 = parity_idx_to_parity(parity1_idx) * parity_idx_to_parity(parity2_idx)
                     parity3_idx = parity_to_parity_idx(parity3)
 
+
                     # for each of the features in irrep1 and irrep2, calculate the tensor product
-                    for l3 in range(max_output_l + 1):
+                    for l3 in range(l3_min, l3_max):
                         for m3 in range(-l3, l3 + 1):
                             coef_idx = Irrep.coef_idx(l3, m3)
 
@@ -46,7 +48,7 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_output_l: int) -> jnp.nd
                                             v1 = irrep1.get_coefficient(parity1_idx, feat1_idx, l1, m1)
                                             v2 = irrep2.get_coefficient(parity2_idx, feat2_idx, l2, m2)
                                             cg = get_clebsch_gordan(l1, l2, l3, m1, m2, m3)
-                                            print(f"l1={l1}, l2={l2}, l3={l3}, m1={m1}, m2={m2}, m3={m3}, v1={v1}, v2={v2}, cg={cg} feat_idx={feat3_idx}")
+                                            print(f"l1={l1}, l2={l2}, l3={l3}, m1={m1}, m2={m2}, m3={m3}, v1={v1}, v2={v2}, cg={cg} feat_idx={feat3_idx} p1_idx={parity1_idx} p2_idx={parity2_idx} p3_idx={parity3_idx}")
                                             out = out.at[parity3_idx, coef_idx, feat3_idx].add(cg*v1*v2)
     return out
 
