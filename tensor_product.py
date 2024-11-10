@@ -37,6 +37,7 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_output_l: int) -> jnp.nd
                 for parity2_idx in PARITY_IDXS:
                     if irrep1.is_feature_zero(parity1_idx, feat1_idx) or irrep2.is_feature_zero(parity2_idx, feat2_idx):
                         continue
+                    print(f"feat1={irrep1.get_ith_feature(parity1_idx, feat1_idx)}, feat2={irrep2.get_ith_feature(parity2_idx, feat2_idx)}")
 
                     feat3_idx = feat1_idx * num_irrep2_feats + feat2_idx
                     parity3 = parity_idx_to_partiy(parity1_idx) * parity_idx_to_partiy(parity2_idx)
@@ -51,8 +52,8 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_output_l: int) -> jnp.nd
                             coef_idx = Irrep.coef_idx(l3, m3)
 
                             # calculate the repr for the output l
-                            for l1 in range(max_l1):
-                                for l2 in range(max_l2):
+                            for l1 in range(max_l1+1):
+                                for l2 in range(max_l2+1):
                                     for m1 in range(-l1, l1 + 1):
                                         for m2 in range(-l2, l2 + 1):
                                             v1 = irrep1.get_coefficient(parity1_idx, feat1_idx, l1, m1)

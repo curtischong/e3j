@@ -55,9 +55,12 @@ class Irrep():
     def get_coefficient(self, parity_idx:int, ith_feature: int, l: int, m: int) -> float:
         return self.array[parity_idx, self.coef_idx(l,m) , ith_feature]
 
+
+    def get_ith_feature(self, parity_idx: int, ith_feature: int) -> float:
+        return self.array[parity_idx, :, ith_feature]
     # returns true if there is no feature at the given parity and index i
     def is_feature_zero(self, parity_idx: int, ith_feature: int) -> bool:
-        subset = self.array[parity_idx, :, ith_feature]
+        subset = self.get_ith_feature(parity_idx, ith_feature)
         # print("subset:", subset, jnp.all(subset == 0))
         return jnp.all(subset == 0)
 
