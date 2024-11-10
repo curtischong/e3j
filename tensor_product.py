@@ -31,8 +31,8 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_output_l: int) -> jnp.nd
 
                     # for each of the features in irrep1 and irrep2, calculate the tensor product
                     for l3 in range(max_output_l):
-                        start_idx_of_l = l3**2
                         for m3 in range(-l3, l3 + 1):
+                            coef_idx = Irrep.coef_idx(l3, m3)
 
                             # calculate the repr for the output l
                             for l1 in range(max_l1):
@@ -41,7 +41,7 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_output_l: int) -> jnp.nd
                                         for m2 in range(-l2, l2 + 1):
                                             v1 = irrep1.get_coefficient(parity1, feat1_idx, l1, m1)
                                             v2 = irrep2.get_coefficient(parity2, feat2_idx, l2, m2)
-                                            out = out.at[parity3, start_idx_of_l + m3, feat3_idx].add(get_clebsch_gordan(l1, l2, l3, m1, m2, m3)*v1*v2)
+                                            out = out.at[parity3, coef_idx, feat3_idx].add(get_clebsch_gordan(l1, l2, l3, m1, m2, m3)*v1*v2)
     return out
 
 
