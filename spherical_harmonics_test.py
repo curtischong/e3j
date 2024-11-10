@@ -23,3 +23,5 @@ if __name__ == "__main__":
     assert_matches_e3x([0.0, 0.0, 1.0])
     assert_matches_e3x([1.2, 2.0, -1.0])
     assert_matches_e3x([-2, -2.0, -1.0])
+
+    assert jnp.array_equal(map_3d_feats_to_spherical_harmonics_repr([[1,1,1]]).array, map_3d_feats_to_spherical_harmonics_repr([[2,2,2]]).array), "two vectors facing the same direction should have the same representation (despite having diff magnitudes)"

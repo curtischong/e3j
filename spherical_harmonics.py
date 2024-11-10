@@ -15,6 +15,9 @@ import numpy as np
 # I am using the spherical harmonics definition from e3x
 
 # This is like scatter sum but for feats?
+# Important! spherical harmonics are the angular solutions to the Laplace equation. So we normalize
+# the feature before mapping to a representation via spherical harmonics
+# This means that two vectors of different lengths but facing the same direction will have the same representation
 def map_3d_feats_to_spherical_harmonics_repr(feats_3d: list[list[float]], normalize: bool=False) -> Irrep:
     num_feats = len(feats_3d)
     max_l = 1 # l=1 since we're dealing with 3D features
