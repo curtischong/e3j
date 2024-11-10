@@ -3,7 +3,7 @@ import jax.numpy as jnp
 import sympy as sp
 
 from irrep import Irrep
-from spherical_harmonic_playground import _spherical_harmonics
+from spherical_harmonics_playground import _spherical_harmonics
 from constants import ODD_PARITY_IDX, EVEN_PARITY, default_dtype
 
 # map the point to the specified spherical harmonic. normally, when irreps are passed around,
