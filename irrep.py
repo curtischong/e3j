@@ -40,6 +40,14 @@ class Irrep():
     # this is the number of times the irrep is repeated
     def multiplicity(self):
         return self.array.shape[-1]
+    
+    def get_coefficient(self, ith_feature: int, l: int, m: int) -> float:
+        # assert ith_feature < self.multiplicity(), f"The ith feature is out of bounds. The number of features is {self.multiplicity()}"
+        # assert l >= 0, f"l must be non-negative. You passed in {l}"
+        # assert m >= -l and m <= l, f"m must be between -l and l. You passed in {m}"
+
+        start_idx_of_l = l**2 # there are l**2 - 1 coefficients for the lower levels of l. (since l=0 has 1 coefficient, l=1 has 3, l=2 has 5, etc)
+        return self.array[(start_idx_of_l) + m, ith_feature]
 
     def get_xyz_vectors(self) -> Float[Array, "num_feats 3"]:
         assert self.array.shape[0][0] >= 4, f"This irrep doesn't have enough coefficients to get the xyz vectors. it only has {self.array.shape[0][0]} coefficients"
