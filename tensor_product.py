@@ -1,5 +1,5 @@
 from clebsch_gordan import get_clebsch_gordan
-from constants import EVEN_PARITY, EVEN_PARITY_IDX, NUM_PARITY_DIMS, ODD_PARITY, PARITY_IDXS
+from constants import EVEN_PARITY, EVEN_PARITY_IDX, NUM_PARITY_DIMS, ODD_PARITY, ODD_PARITY_IDX, PARITY_IDXS
 from irrep import Irrep
 import jax.numpy as jnp
 
@@ -40,6 +40,10 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_output_l: int) -> jnp.nd
 
                     feat3_idx = feat1_idx * num_irrep2_feats + feat2_idx
                     parity3 = parity_idx_to_partiy(parity1_idx) * parity_idx_to_partiy(parity2_idx)
+                    if parity3 == EVEN_PARITY:
+                        parity3_idx = EVEN_PARITY_IDX
+                    else:
+                        parity3_idx = ODD_PARITY_IDX
 
                     # for each of the features in irrep1 and irrep2, calculate the tensor product
                     for l3 in range(max_output_l):
@@ -53,7 +57,7 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_output_l: int) -> jnp.nd
                                         for m2 in range(-l2, l2 + 1):
                                             v1 = irrep1.get_coefficient(parity1_idx, feat1_idx, l1, m1)
                                             v2 = irrep2.get_coefficient(parity2_idx, feat2_idx, l2, m2)
-                                            out = out.at[parity3, coef_idx, feat3_idx].add(get_clebsch_gordan(l1, l2, l3, m1, m2, m3)*v1*v2)
+                                            out = out.at[parity3_idx, coef_idx, feat3_idx].add(get_clebsch_gordan(l1, l2, l3, m1, m2, m3)*v1*v2)
     return out
 
 
