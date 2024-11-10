@@ -2,9 +2,11 @@ import jax.numpy as jnp
 
 import sympy as sp
 
+import e3x
 from irrep import Irrep
 from spherical_harmonics_playground import _spherical_harmonics
 from constants import ODD_PARITY_IDX, EVEN_PARITY, default_dtype
+import numpy as np
 
 # map the point to the specified spherical harmonic. normally, when irreps are passed around,
 # we need to map the coords to EACH irrep
@@ -25,7 +27,14 @@ def map_3d_feats_to_spherical_harmonics_repr(feats_3d: list[list[float]], normal
 
         for l in range(max_l + 1):
             for m in range(-l, l + 1):
+
+                # normalize the feature
+                feat_np = np.array(feat)
+                magnitude = np.linalg.norm(feat_np)
+                feat = (feat_np / magnitude).tolist()
+
                 coefficient = float(_spherical_harmonics(l, m)(*feat))
+                # coefficient = float(e3x.so3._symbolic._spherical_harmonics(l, m)(*feat))
                 arr = arr.at[ODD_PARITY_IDX, Irrep.coef_idx(l,m), ith_feat].set(coefficient)
 
                 # feats.append(_spherical_harmonics(l, m)(*feat))

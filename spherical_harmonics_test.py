@@ -15,7 +15,8 @@ if __name__ == "__main__":
     # print(map_3d_feats_to_spherical_harmonics_repr([feat]).array)
 
     def assert_matches_e3x(feat):
-        e3x_res = spherical_harmonics(jnp.array(feat), 1, cartesian_order=False)
+        jfeat = jnp.array(feat)
+        e3x_res = spherical_harmonics(jfeat, 1, cartesian_order=False, normalization='racah')
         e3j_res = jnp.squeeze(map_3d_feats_to_spherical_harmonics_repr([feat]).array[ODD_PARITY_IDX])
         assert jnp.allclose(e3x_res, e3j_res), f"e3x={e3x_res}, e3j={e3j_res}"
 
