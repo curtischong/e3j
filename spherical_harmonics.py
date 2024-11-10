@@ -26,8 +26,7 @@ def map_3d_feats_to_spherical_harmonics_repr(feats_3d: list[list[float]], normal
         for l in range(max_l + 1):
             for m in range(-l, l + 1):
                 coefficient = float(_spherical_harmonics(l, m)(*feat))
-                # print("idx", l**2 + (m + l))
-                arr = arr.at[ODD_PARITY_IDX, l**2 + (m + l), ith_feat].set(coefficient)
+                arr = arr.at[ODD_PARITY_IDX, Irrep.coef_idx(l,m), ith_feat].set(coefficient)
 
                 # feats.append(_spherical_harmonics(l, m)(*feat))
         # arr = arr.at[num_coefficients_per_feat].set(feats)
