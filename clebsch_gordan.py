@@ -5,9 +5,7 @@ import e3nn_jax as e3nn
 def get_clebsch_gordan(l1: int, l2: int, l3: int, m1: int, m2: int, m3: int) -> float:
     cg = _get_clebsch_gordan(l1, l2, l3)
 
-    # this is some weird indexing, but okay. sure?
-    # It's weird cause if l1=2 and m1=-2, we are indexing the same subarray as l1=1 and m1=-1? (since we are doing l1 + m1)
-    # I guess those two coefficients are the same, which is why it works
+    # I'm pretty sure we add each li to mi because mi starts at -li. So we need to offset it by li
     return cg[l1 + m1, l2 + m2, l3 + m3]
 
 @lru_cache(maxsize=None)

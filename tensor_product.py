@@ -13,8 +13,9 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_output_l: int) -> jnp.nd
     num_irrep1_feats = irrep1.multiplicity()
     num_irrep2_feats = irrep2.multiplicity()
     num_output_feats = num_irrep1_feats * num_irrep2_feats
+    print(f"num_output_feats={num_output_feats}")
 
-    assert max_output_l <= max(max_l1, max_l2) + 1 # TODO: verify that the max_output_l can grow at most 1 more than the largest of the input ls
+    assert max_output_l <= max_l1 + max_l2 # I got this constraint from ecnn.c
 
     num_coefficients_per_feat = (max_output_l+1)**2 # l=0 has 1 coefficient, l=1 has 3, l=2 has 5, etc. This formula gives the sum of all these coefficients
 
@@ -45,7 +46,7 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_output_l: int) -> jnp.nd
                                             v1 = irrep1.get_coefficient(parity1_idx, feat1_idx, l1, m1)
                                             v2 = irrep2.get_coefficient(parity2_idx, feat2_idx, l2, m2)
                                             cg = get_clebsch_gordan(l1, l2, l3, m1, m2, m3)
-                                            print(f"l1={l1}, l2={l2}, l3={l3}, m1={m1}, m2={m2}, m3={m3}, v1={v1}, v2={v2}, cg={cg}")
+                                            print(f"l1={l1}, l2={l2}, l3={l3}, m1={m1}, m2={m2}, m3={m3}, v1={v1}, v2={v2}, cg={cg} feat_idx={feat3_idx}")
                                             out = out.at[parity3_idx, coef_idx, feat3_idx].add(cg*v1*v2)
     return out
 
