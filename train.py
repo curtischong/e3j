@@ -15,6 +15,7 @@ import optax
 from graph_utils import radius_graph
 from spherical_harmonics import map_3d_feats_to_spherical_harmonics_repr
 from tensor_product import tensor_product_v1
+from jaxtyping import Array, Float
 
 
 def tetris() -> jraph.GraphsTuple:
@@ -68,7 +69,7 @@ class Layer(flax.linen.Module):
     # sh_lmax: int = 3
 
     @flax.linen.compact
-    def __call__(self, graphs, positions):
+    def __call__(self, graphs, positions: Float[Array, 'num_nodes 3'], **kwargs):
         # target_irreps = Irreps(self.raw_target_irreps)
 
         def update_edge_fn(_edge_features, sender_features: jnp.ndarray, receiver_features: jnp.ndarray, _globals):
