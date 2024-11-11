@@ -3,6 +3,7 @@ import jax.numpy as jnp
 import dataclasses
 from jaxtyping import Float, Array
 from constants import ODD_PARITY_IDX
+import math
 # https://e3x.readthedocs.io/stable/overview.html
 # this page is pretty informative^
 
@@ -40,13 +41,18 @@ class Irrep():
         return start_idx_of_l + m_offset
 
     # calculate l based on the dimensions of the array
+    # def l(self):
+    #     num_irrep_coefficients = self.array.shape[1]
+
+    #     # recall that 2l + 1 = the number of coefficients for that irrep
+    #     # so 2l = num_irrep_coefficients - 1
+    #     # l = (num_irrep_coefficients - 1) // 2
+    #     return (num_irrep_coefficients - 1) // 2
+
     def l(self):
         num_irrep_coefficients = self.array.shape[1]
-
-        # recall that 2l + 1 = the number of coefficients for that irrep
-        # so 2l = num_irrep_coefficients - 1
-        # l = (num_irrep_coefficients - 1) // 2
-        return (num_irrep_coefficients - 1) // 2
+        max_l = int(math.sqrt(num_irrep_coefficients)) - 1
+        return max_l
 
     # this is the number of times the irrep is repeated
     def multiplicity(self):
