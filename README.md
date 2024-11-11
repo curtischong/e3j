@@ -38,6 +38,14 @@ THESE ARE the parity of the inputs for spherical harmonics that you specify
     Irreps* irreps_sh = irreps_create("1x1o + 1x2e + 1x3o");
 
 
+### Where are the weights?
+- e3nn and e3x offers linear layers where they perform tensor products AND HAVE WEIGHTS inside the tensor product.
+    - basically, when you multiply each irrep coefficient with the clebsch gordan coefficients, you also multiply with the corresponding weight
+- This makes the tensor product implementation more complicated, and harder to debug
+- I'm NOT storing the weights here. instead, the weights will be simple linear layers on the irreps (similar to Allegro's implementation - Note: not 100% sure that allegro's tensor product doesn't contains weights, but too lazy to check)
+
+
+
 ### Gotchas I had when implementing
 - make sure you're using cartesian or NOT cartesian order for the spherical harmonics coefficients
 - When getting the clebsch gordan coefficients, check the shape of the matrix you're reading it from. Make sure you're only
