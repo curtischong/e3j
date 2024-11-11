@@ -26,3 +26,28 @@ if __name__ == "__main__":
     print(e3nn_irrep2)
     print("e3nn tensor product:")
     print(tensor_product(e3nn_irrep1, e3nn_irrep2))
+
+
+    # # Create simple irreps with known coefficients
+    # max_l = 1
+    # num_feats = 1
+    # array_shape = (2, (max_l + 1)**2, num_feats)
+    # array1 = jnp.zeros(array_shape)
+    # array2 = jnp.zeros(array_shape)
+
+    # # Set some coefficients to non-zero values
+    # # For parity index 0 (even parity), l=1, m=0
+    # coef_idx_l1_m0 = Irrep.coef_idx(1, 0)
+    # array1 = array1.at[0, coef_idx_l1_m0, 0].set(1.0)
+    # array2 = array2.at[0, coef_idx_l1_m0, 0].set(1.0)
+
+    # irrep1 = Irrep(array1)
+    # irrep2 = Irrep(array2)
+    # print("irrep1:", irrep1)
+
+    # # Compute tensor product
+    # result = tensor_product_v1(irrep1, irrep2)
+
+    # # Print the result
+    # print("Resulting array shape:", result.shape)
+    # print("Resulting coefficients:", result)

@@ -47,6 +47,7 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep) -> jnp.ndarray:
                                         cg = get_clebsch_gordan(l1, l2, l3, m1, m2, m3)
                                         if cg == 0:
                                             continue
+                                        # print("CG coefficient:", cg, l3, m3)
                                         coef_idx = Irrep.coef_idx(l3, m3)
                                         out = out.at[parity3_idx, coef_idx, feat3_idx].add(cg * v1 * v2)
     return out
