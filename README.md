@@ -51,3 +51,7 @@ THESE ARE the parity of the inputs for spherical harmonics that you specify
 - When getting the clebsch gordan coefficients, check the shape of the matrix you're reading it from. Make sure you're only
 reading the coefficients for degrees l1,l2,l3 NOT all the degrees up to l1+l2+l3 (which is a larger matrix).
 - make sure you normalize the vectors before you calculate the spherical harmonics coefficients to get the irreps
+
+
+TODO: rename features to num channels
+- since features may be confused with the irreps array
