@@ -3,6 +3,7 @@ from constants import EVEN_PARITY, EVEN_PARITY_IDX, NUM_PARITY_DIMS, ODD_PARITY_
 from parity import parity_idx_to_parity, parity_to_parity_idx
 from irrep import Irrep
 import jax.numpy as jnp
+import math
 
 
 def tensor_product_v1(irrep1: Irrep, irrep2: Irrep) -> jnp.ndarray:
@@ -18,7 +19,7 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep) -> jnp.ndarray:
     l3_min = abs(max_l1 - max_l2)
     l3_max = max_l1 + max_l2
 
-    num_coefficients_per_feat = (l3_max+1)**2 # l=0 has 1 coefficient, l=1 has 3, l=2 has 5, etc. This formula gives the sum of all these coefficients
+    num_coefficients_per_feat = (l3_max+1)**2 # l=0 has 1 spherical harmonic coefficient, l=1 has 3, l=2 has 5, etc. This formula gives the sum of all these coefficients
 
     out = jnp.zeros((NUM_PARITY_DIMS, num_coefficients_per_feat, num_output_feats), dtype=jnp.float32)
 
@@ -36,7 +37,8 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep) -> jnp.ndarray:
 
 
                     # for each of the features in irrep1 and irrep2, calculate the tensor product
-                    for l3 in range(l3_min, l3_max):
+                    for l3 in range(l3_min, l3_max + 1):
+                        # float normalize = math.sqrt(2 * l3 + 1)
                         for m3 in range(-l3, l3 + 1):
                             coef_idx = Irrep.coef_idx(l3, m3)
 
