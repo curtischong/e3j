@@ -25,7 +25,7 @@ if __name__ == "__main__":
     print(e3nn_irrep1)
     print(e3nn_irrep2)
     print("e3nn tensor product:")
-    print(tensor_product(e3nn_irrep1, e3nn_irrep2))
+    print(tensor_product(e3nn_irrep1, e3nn_irrep2,irrep_normalization="norm"))
 
 
     # # Create simple irreps with known coefficients
