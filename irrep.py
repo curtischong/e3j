@@ -24,7 +24,7 @@ import math
 
 @dataclasses.dataclass(init=False)
 class Irrep():
-    array: Float[Array, "parity=2   coefficients_for_every_l_and_m=2*(max_l+1)^2   num_feats"]
+    array: Float[Array, "parity=2   coefficients_for_every_l_and_m=(max_l+1)^2   num_feats"]
     # why can't we separate the dimensions for l and m? why are we indexing the coefficients in the coefficients_for_every_l_and_m dimension?
     # it's because each l has different numbers of m. e.g. l=0 has 1 m, l=1 has 3, l=2 has 5, etc.
     # if we used different indices for different l and m, the resulting array would look like a staircase, not a rectangle
@@ -41,15 +41,8 @@ class Irrep():
         return start_idx_of_l + m_offset
 
     # calculate l based on the dimensions of the array
-    # def l(self):
-    #     num_irrep_coefficients = self.array.shape[1]
-
-    #     # recall that 2l + 1 = the number of coefficients for that irrep
-    #     # so 2l = num_irrep_coefficients - 1
-    #     # l = (num_irrep_coefficients - 1) // 2
-    #     return (num_irrep_coefficients - 1) // 2
-
     def l(self):
+        print("arr shape", self.array.shape)
         num_irrep_coefficients = self.array.shape[1]
         max_l = int(math.sqrt(num_irrep_coefficients)) - 1
         return max_l
