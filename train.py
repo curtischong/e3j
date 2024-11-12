@@ -20,20 +20,22 @@ from tensor_product import tensor_product_v1
 from jaxtyping import Array, Float
 
 
+shapes = [
+    # [[0, 0, 0], [0, 0, 1], [1, 0, 0], [1, 1, 0]],  # chiral_shape_1 # curtis: chiral_shape_1 and chiral_shape_2 are the same except I think chiral_shape_2 is reflected. Either way, it makes the output irreps harder to predict (need a o1 output to differentiate between the two tetrises.
+    # Since I'm lazy, and want this to be as simple as possible, I will just have one chiral shape
+    [[1, 1, 1], [1, 1, 2], [2, 1, 1], [2, 0, 1]],  # chiral_shape_2
+    [[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0]],  # square
+    [[0, 0, 0], [0, 0, 1], [0, 0, 2], [0, 0, 3]],  # line
+    [[0, 0, 0], [0, 0, 1], [0, 1, 0], [1, 0, 0]],  # corner
+    [[0, 0, 0], [0, 0, 1], [0, 0, 2], [0, 1, 0]],  # L
+    [[0, 0, 0], [0, 0, 1], [0, 0, 2], [0, 1, 1]],  # T # curtis: how is this a T???? doens't it need 5 points?
+    [[0, 0, 0], [1, 0, 0], [1, 1, 0], [2, 1, 0]],  # zigzag
+]
+num_classes = len(shapes)
+shapes = jnp.array(shapes, dtype=jnp.float32)
+
 def tetris() -> jraph.GraphsTuple:
-    shapes = [
-        # [[0, 0, 0], [0, 0, 1], [1, 0, 0], [1, 1, 0]],  # chiral_shape_1 # curtis: chiral_shape_1 and chiral_shape_2 are the same except I think chiral_shape_2 is reflected. Either way, it makes the output irreps harder to predict (need a o1 output to differentiate between the two tetrises.
-        # Since I'm lazy, and want this to be as simple as possible, I will just have one chiral shape
-        [[1, 1, 1], [1, 1, 2], [2, 1, 1], [2, 0, 1]],  # chiral_shape_2
-        [[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0]],  # square
-        [[0, 0, 0], [0, 0, 1], [0, 0, 2], [0, 0, 3]],  # line
-        [[0, 0, 0], [0, 0, 1], [0, 1, 0], [1, 0, 0]],  # corner
-        [[0, 0, 0], [0, 0, 1], [0, 0, 2], [0, 1, 0]],  # L
-        [[0, 0, 0], [0, 0, 1], [0, 0, 2], [0, 1, 1]],  # T # curtis: how is this a T???? doens't it need 5 points?
-        [[0, 0, 0], [1, 0, 0], [1, 1, 0], [2, 1, 0]],  # zigzag
-    ]
-    shapes = jnp.array(shapes, dtype=jnp.float32)
-    labels = jnp.arange(len(shapes))
+    labels = jnp.arange(num_classes)
 
     graphs = []
 
@@ -41,6 +43,7 @@ def tetris() -> jraph.GraphsTuple:
         pos = shapes[i]
         label = labels[i]
         senders, receivers = radius_graph(pos, 1.1)
+        print("senders and receivers:")
         print(senders, receivers)
 
         # print(l)
@@ -63,7 +66,7 @@ def tetris() -> jraph.GraphsTuple:
     return jraph.batch(graphs)
 
 
-class Layer(flax.linen.Module):
+class e3jLayer(flax.linen.Module):
     max_l: int
     num_channels: int
     # raw_target_irreps: str
@@ -75,30 +78,52 @@ class Layer(flax.linen.Module):
         # target_irreps = Irreps(self.raw_target_irreps)
 
         def update_edge_fn(_edge_features, sender_features: jnp.ndarray, receiver_features: jnp.ndarray, _globals):
-            # the only feature we care in the tetris example is the relative position of the receiver to the sender
+            # TODO: tensor product with sh???
+            return sender_features
+            # # the only feature we care in the tetris example is the relative position of the receiver to the sender
 
-            features = positions[graphs.receivers] - positions[graphs.senders]
-            print("sender_features")
-            print(sender_features)
+            # features = positions[graphs.receivers] - positions[graphs.senders]
+            # # print("sender_features")
+            # # print(sender_features.shape)
+            # # the shape of sender features is: (all of the neighbors, 1 ,3)
 
-            sender_features_irrep = Irrep(sender_features)
+            # sender_features_irrep = Irrep(sender_features)
 
-            # this only maps a 3D vector to a spherical harmonic but what about higher dimensional inputs?
-            sh = map_3d_feats_to_spherical_harmonics_repr(
-                features,
-                normalize=True,
-            )
-            tp = tensor_product_v1(sender_features_irrep, sh)
-            # concatenate these arrays along the channel axis (last one)
-            messages = jnp.concatenate([sender_features, tp], axis=-1)
-            return messages 
+            # # this only maps a 3D vector to a spherical harmonic but what about higher dimensional inputs?
+            # sh = map_3d_feats_to_spherical_harmonics_repr(
+            #     features,
+            #     normalize=True,
+            # )
+            # tp = tensor_product_v1(sender_features_irrep, sh)
+            # # concatenate these arrays along the channel axis (last one)
+            # messages = jnp.concatenate([sender_features, tp], axis=-1)
+            # return messages 
 
-        def update_node_fn(node_features, _sender_features, receiver_features, _globals):
-            print("update node fn")
-            node_feats = receiver_features / self.denominator
-            node_feats = flax.linen.Dense(features=2*(self.max_l**2)*self.num_channels, name="linear")(node_feats)
+        def update_node_fn(node_features, _outgoing_edge_features, incoming_edge_features, _globals):
+            summed_incoming = jnp.sum(incoming_edge_features, axis=0)
+            # print("incoming_edge_features shape", incoming_edge_features.shape)
+            # print("summed_incoming shape", summed_incoming.shape)
+
+            # node_feats = receiver_features / self.denominator
+            node_feats = flax.linen.Dense(features=2*(self.max_l**2)*self.num_channels, name="linear")(summed_incoming)
             # NOTE: removed scalar activation and extra linear layer for now
-            return Irrep(node_feats)
+            return node_feats
+        # return jraph.GraphNetwork(update_edge_fn, update_node_fn)(graphs)
+        return jraph.GraphNetwork(update_edge_fn, update_node_fn)(graphs)
+    
+
+class e3jFinalLayer(flax.linen.Module):
+    @flax.linen.compact
+    def __call__(self, graphs, **kwargs):
+
+        def update_edge_fn(_edge_features, sender_features: jnp.ndarray, receiver_features: jnp.ndarray, _globals):
+            return sender_features
+
+        def update_node_fn(node_features, _outgoing_edge_features, incoming_edge_features, _globals):
+            summed_incoming = jnp.sum(incoming_edge_features, axis=0)
+
+            node_feats = flax.linen.Dense(features=num_classes, name="linear")(summed_incoming)
+            return node_feats
         return jraph.GraphNetwork(update_edge_fn, update_node_fn)(graphs)
 
 
@@ -107,25 +132,29 @@ class Model(flax.linen.Module):
     def __call__(self, graphs):
         # positions = e3nn.IrrepsArray("1o", graphs.nodes)
         positions = graphs.nodes
-        graphs = graphs._replace(nodes=jnp.ones((NUM_PARITY_DIMS, 1, len(positions))))
+        graphs = graphs._replace(nodes=jnp.ones((len(positions), 2, 1, 1))) # for each node, ensure it has an empty feature
 
         # layers = 2 * ["32x0e + 32x0o + 8x1o + 8x1e + 8x2e + 8x2o"] + ["0o + 7x0e"]
 
         # for irreps in layers:
-        graphs = Layer(max_l=2, num_channels=8, denominator=1)(graphs, positions)
-        graphs = Layer(max_l=1, num_channels=8, denominator=1)(graphs, positions)
+        graphs = e3jLayer(max_l=2, num_channels=8, denominator=1)(graphs, positions)
+        graphs2 = e3jLayer(max_l=1, num_channels=8, denominator=1)(graphs, positions)
+        graphs = e3jFinalLayer()(graphs2)
 
         # Readout logits
         # pred = e3nn.scatter_sum(
         #     graphs.nodes.array, nel=graphs.n_node
         # )  # [num_graphs, 1 + 7]
-        print("graphs nodes array", graphs.nodes.array)
+        # print("graphs nodes array", graphs.nodes.array)
         # pred = graphs.nodes.array[:,:, 1:4]
-        pred = jax.ops.segment_sum(graphs.nodes.array, graphs.nodes.id)
+        n_node = jnp.array(graphs.n_node)
+        node_graph_ids = jnp.repeat(jnp.arange(len(n_node)), n_node)
+        pred = jax.ops.segment_sum(graphs.nodes, node_graph_ids)
 
-        odd, even1, even2 = pred[:, :1], pred[:, 1:2], pred[:, 2:]
-        logits = jnp.concatenate([odd * even1, -odd * even1, even2], axis=1)
-        assert logits.shape == (len(graphs.n_node), 8)  # [num_graphs, num_classes]
+        # odd, even1, even2 = pred[:, :1], pred[:, 1:2], pred[:, 2:]
+        # logits = jnp.concatenate([odd * even1, -odd * even1, even2], axis=1)
+        logits = pred
+        assert logits.shape == (len(graphs.n_node), num_classes)  # [num_graphs, num_classes]
 
         return logits
 
