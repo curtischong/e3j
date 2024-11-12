@@ -217,13 +217,10 @@ def train(steps=200):
     with open("tetris.mp", "wb") as f:
         f.write(flax.serialization.to_bytes(params))
     
+def prepare_single_graph(pos: jnp.ndarray, radius: float) -> jraph.GraphsTuple:
+    senders, receivers = radius_graph(pos, radius) # make the radius really big so all nodes are connected (just for testing rn. can reduce to 1.1 layer)
 
-def test_equivariance(model: Model, params: jnp.ndarray):
-    pos = [[0, 0, 0], [0, 0, 1], [0, 0, 2], [0, 1, 0]]  # L
-    pos = jnp.array(pos, dtype=default_dtype)
-    senders, receivers = radius_graph(pos, 10) # make the radius really big so all nodes are connected (just for testing rn. can reduce to 1.1 layer)
-
-    graphs = jraph.batch([
+    return jraph.batch([
         jraph.GraphsTuple(
             nodes=pos,
             edges=None,
@@ -234,6 +231,12 @@ def test_equivariance(model: Model, params: jnp.ndarray):
             n_edge=jnp.array([len(senders)]),  # [num_graphs]
         )
     ])
+
+def test_equivariance(model: Model, params: jnp.ndarray):
+    pos = [[0, 0, 0], [0, 0, 1], [0, 0, 2], [0, 1, 0]]  # L
+    pos = jnp.array(pos, dtype=default_dtype)
+
+    graphs = prepare_single_graph(pos, 1.1)
 
     logits = model.apply(params, graphs)
 
@@ -246,20 +249,11 @@ def test_equivariance(model: Model, params: jnp.ndarray):
     #     [1, 0, 0],
     #     [0, 0, -1],
     #     [0, 1, 0],
-    # ])
-    pos_rotated = jnp.dot(pos, rotation_matrix)
+    # ]) # I think transpose to convery row vectors into column?
+    pos_rotated = jnp.dot(pos, rotation_matrix.T)
 
-    graphs = jraph.batch([
-        jraph.GraphsTuple(
-            nodes=pos_rotated,
-            edges=None,
-            globals=None,
-            senders=senders,  # [num_edges]
-            receivers=receivers,  # [num_edges]
-            n_node=jnp.array([len(pos)]),  # [num_graphs]
-            n_edge=jnp.array([len(senders)]),  # [num_graphs]
-        )
-    ])
+    graphs = prepare_single_graph(pos_rotated, 1.1)
+
     # we don't need to rotate the logits since this is a scalar output. it's not a vector
     rotated_logits = model.apply(params, graphs)
 
