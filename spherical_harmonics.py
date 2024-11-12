@@ -46,7 +46,7 @@ def map_3d_feats_to_spherical_harmonics_repr(feats_3d: Float[Array, "num_feats 3
                 magnitude = jnp.linalg.norm(feat)
                 feat = (feat / magnitude)
 
-                coefficient = float(_spherical_harmonics(l, m)(feat[0], feat[1], feat[2]))
+                coefficient = float(_spherical_harmonics(l, m)(*feat.tolist()))
                 # coefficient = float(e3x.so3._symbolic._spherical_harmonics(l, m)(*feat))
 
                 # https://chatgpt.com/share/67306530-4680-800e-b259-fd767593126c

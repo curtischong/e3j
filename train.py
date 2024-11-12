@@ -228,5 +228,5 @@ def train(steps=200):
 
 if __name__ == "__main__":
     # TODO:(curtis): enable this after
-    # with jax.disable_jit():
-    train()
+    with jax.disable_jit():
+        train()
