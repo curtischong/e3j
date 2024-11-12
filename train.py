@@ -70,7 +70,6 @@ def tetris() -> jraph.GraphsTuple:
 
 class e3jLayer(flax.linen.Module):
     max_l: int
-    num_channels: int
     # raw_target_irreps: str
     denominator: float
     # sh_lmax: int = 3
@@ -120,7 +119,7 @@ class e3jLayer(flax.linen.Module):
         def update_node_fn(node_features, _outgoing_edge_features, incoming_edge_features, _globals):
             # summed_incoming = jnp.sum(incoming_edge_features, axis=0) # no need to do this. jraph's aggregation function by default sums the incoming edge features
 
-            # node_feats = receiver_features / self.denominator
+            incoming_edge_features = incoming_edge_features / self.denominator
             node_feats = flax.linen.Dense(features=incoming_edge_features.shape[-1], name="linear")(incoming_edge_features)
             # NOTE: removed scalar activation and extra linear layer for now
             return node_feats
@@ -150,8 +149,8 @@ class Model(flax.linen.Module):
         # layers = 2 * ["32x0e + 32x0o + 8x1o + 8x1e + 8x2e + 8x2o"] + ["0o + 7x0e"]
 
         # for irreps in layers:
-        graphs = e3jLayer(max_l=1, num_channels=8, denominator=1)(graphs, positions)
-        graphs = e3jLayer(max_l=1, num_channels=8, denominator=1)(graphs, positions)
+        graphs = e3jLayer(max_l=2, denominator=1)(graphs, positions)
+        graphs = e3jLayer(max_l=3, denominator=1)(graphs, positions)
         graphs = e3jFinalLayer()(graphs)
         logits = graphs.globals
 
@@ -243,7 +242,12 @@ def test_equivariance(model: Model, params: jnp.ndarray):
         [0, 0.7071, -0.7071],
         [-0.7071, 0.5, 0.5],
     ])
-    pos_rotated = jnp.dot(pos, rotation_matrix.T)
+    # rotation_matrix = jnp.array([
+    #     [1, 0, 0],
+    #     [0, 0, -1],
+    #     [0, 1, 0],
+    # ])
+    pos_rotated = jnp.dot(pos, rotation_matrix)
 
     graphs = jraph.batch([
         jraph.GraphsTuple(
