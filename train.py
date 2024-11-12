@@ -12,7 +12,9 @@ import jax.numpy as jnp
 import jraph
 import optax
 
+from constants import NUM_PARITY_DIMS
 from graph_utils import radius_graph
+from irrep import Irrep
 from spherical_harmonics import map_3d_feats_to_spherical_harmonics_repr
 from tensor_product import tensor_product_v1
 from jaxtyping import Array, Float
@@ -75,24 +77,28 @@ class Layer(flax.linen.Module):
         def update_edge_fn(_edge_features, sender_features: jnp.ndarray, receiver_features: jnp.ndarray, _globals):
             # the only feature we care in the tetris example is the relative position of the receiver to the sender
 
-            features = positions[graphs.receivers] - positions[graphs.senders],
+            features = positions[graphs.receivers] - positions[graphs.senders]
+            print("sender_features")
+            print(sender_features)
 
+            sender_features_irrep = Irrep(sender_features)
 
             # this only maps a 3D vector to a spherical harmonic but what about higher dimensional inputs?
             sh = map_3d_feats_to_spherical_harmonics_repr(
                 features,
                 normalize=True,
             )
-            tp = tensor_product_v1(sender_features, sh)
+            tp = tensor_product_v1(sender_features_irrep, sh)
             # concatenate these arrays along the channel axis (last one)
             messages = jnp.concatenate([sender_features, tp], axis=-1)
             return messages 
 
         def update_node_fn(node_features, _sender_features, receiver_features, _globals):
+            print("update node fn")
             node_feats = receiver_features / self.denominator
             node_feats = flax.linen.Dense(features=2*(self.max_l**2)*self.num_channels, name="linear")(node_feats)
             # NOTE: removed scalar activation and extra linear layer for now
-            return node_feats
+            return Irrep(node_feats)
         return jraph.GraphNetwork(update_edge_fn, update_node_fn)(graphs)
 
 
@@ -101,7 +107,7 @@ class Model(flax.linen.Module):
     def __call__(self, graphs):
         # positions = e3nn.IrrepsArray("1o", graphs.nodes)
         positions = graphs.nodes
-        graphs = graphs._replace(nodes=jnp.ones((len(positions), 1)))
+        graphs = graphs._replace(nodes=jnp.ones((NUM_PARITY_DIMS, 1, len(positions))))
 
         # layers = 2 * ["32x0e + 32x0o + 8x1o + 8x1e + 8x2e + 8x2o"] + ["0o + 7x0e"]
 
@@ -192,4 +198,6 @@ def train(steps=200):
 
 
 if __name__ == "__main__":
-    train()
+    # TODO:(curtis): enable this after
+    with jax.disable_jit():
+        train()
