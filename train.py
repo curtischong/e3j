@@ -149,8 +149,8 @@ class Model(flax.linen.Module):
         # layers = 2 * ["32x0e + 32x0o + 8x1o + 8x1e + 8x2e + 8x2o"] + ["0o + 7x0e"]
 
         # for irreps in layers:
-        graphs = e3jLayer(max_l=5, denominator=1)(graphs, positions)
-        graphs = e3jLayer(max_l=9, denominator=1)(graphs, positions)
+        graphs = e3jLayer(max_l=2, denominator=1)(graphs, positions)
+        graphs = e3jLayer(max_l=3, denominator=1)(graphs, positions)
         graphs = e3jFinalLayer()(graphs)
         logits = graphs.globals
 
@@ -232,6 +232,44 @@ def prepare_single_graph(pos: jnp.ndarray, radius: float) -> jraph.GraphsTuple:
         )
     ])
 
+def get_rotation_matrix(roll: float, pitch: float, yaw: float) -> jnp.ndarray:
+    """
+    Returns a 3x3 rotation matrix given roll, pitch, and yaw angles.
+    
+    Parameters:
+    - roll: Rotation angle around the x-axis in radians.
+    - pitch: Rotation angle around the y-axis in radians.
+    - yaw: Rotation angle around the z-axis in radians.
+    
+    Returns:
+    - A 3x3 JAX array representing the rotation matrix.
+    """
+    # Rotation matrix around the x-axis
+    Rx = jnp.array([
+        [1, 0, 0],
+        [0, jnp.cos(roll), -jnp.sin(roll)],
+        [0, jnp.sin(roll), jnp.cos(roll)]
+    ])
+    
+    # Rotation matrix around the y-axis
+    Ry = jnp.array([
+        [jnp.cos(pitch), 0, jnp.sin(pitch)],
+        [0, 1, 0],
+        [-jnp.sin(pitch), 0, jnp.cos(pitch)]
+    ])
+    
+    # Rotation matrix around the z-axis
+    Rz = jnp.array([
+        [jnp.cos(yaw), -jnp.sin(yaw), 0],
+        [jnp.sin(yaw), jnp.cos(yaw), 0],
+        [0, 0, 1]
+    ])
+    
+    # Combine the rotations: R = Rz * Ry * Rx
+    R = Rz @ Ry @ Rx
+    return R
+
+
 def test_equivariance(model: Model, params: jnp.ndarray):
     pos = [[0, 0, 0], [0, 0, 1], [0, 0, 2], [0, 1, 0]]  # L
     pos = jnp.array(pos, dtype=default_dtype)
@@ -240,17 +278,8 @@ def test_equivariance(model: Model, params: jnp.ndarray):
 
     logits = model.apply(params, graphs)
 
-    rotation_matrix = jnp.array([
-        [0.7071, 0.5, 0.5],
-        [0, 0.7071, -0.7071],
-        [-0.7071, 0.5, 0.5],
-    ])
-    # rotation_matrix = jnp.array([
-    #     [1, 0, 0],
-    #     [0, 0, -1],
-    #     [0, 1, 0],
-    # ]) # I think transpose to convery row vectors into column?
-    pos_rotated = jnp.dot(pos, rotation_matrix.T)
+    rotation_matrix = get_rotation_matrix(jnp.pi*0.1, jnp.pi*1.2, jnp.pi*0.8)
+    pos_rotated = jnp.dot(pos, rotation_matrix.T) # we transpose and matrix multiply from the left side because python's vectors are row vectors, NOT column vectors. so we can't just do y=Ax
 
     graphs = prepare_single_graph(pos_rotated, 1.1)
 
