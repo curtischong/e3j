@@ -10,7 +10,7 @@ from constants import ODD_PARITY_IDX, EVEN_PARITY, default_dtype
 import numpy as np
 from jaxtyping import Array, Float
 import jax
-from jax import jit
+# from jax import jit
 
 # @jit
 # def get_num_feats(feats_3d):
@@ -41,11 +41,12 @@ def map_3d_feats_to_spherical_harmonics_repr(feats_3d: Float[Array, "num_feats 3
             for m in range(-l, l + 1):
 
                 # normalize the feature
-                feat_np = np.array(feat)
-                magnitude = np.linalg.norm(feat_np)
-                feat = (feat_np / magnitude).tolist()
+                # feat_np = np.array(feat)
+                # magnitude = np.linalg.norm(feat_np)
+                magnitude = jnp.linalg.norm(feat)
+                feat = (feat / magnitude)
 
-                coefficient = float(_spherical_harmonics(l, m)(*feat))
+                coefficient = float(_spherical_harmonics(l, m)(feat[0], feat[1], feat[2]))
                 # coefficient = float(e3x.so3._symbolic._spherical_harmonics(l, m)(*feat))
 
                 # https://chatgpt.com/share/67306530-4680-800e-b259-fd767593126c
