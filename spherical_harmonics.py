@@ -10,11 +10,24 @@ from constants import ODD_PARITY_IDX, EVEN_PARITY, default_dtype
 import numpy as np
 from jaxtyping import Array, Float
 import jax
-# from jax import jit
+import e3nn_jax
 
-# @jit
-# def get_num_feats(feats_3d):
-#     return feats_3d.shape[0]
+# input is the l and m
+# otuput is are the three coefficients
+def init_spherical_harmonics_lookup_table():
+    max_l = 1
+    table = map()
+    for l in range(max_l + 1):
+        for m in range(-l, l + 1):
+            table.set((l,m),_spherical_harmonics(l, m))
+    return table
+
+spherical_harmonics_lookup_table = init_spherical_harmonics_lookup_table()
+
+def get_spherical_harmonics_coefficient(l: int, m: int, feat: jnp.ndarray):
+    return spherical_harmonics_lookup_table.get((l,m))(feat)
+
+
 
 # map the point to the specified spherical harmonic. normally, when irreps are passed around,
 # we need to map the coords to EACH irrep
