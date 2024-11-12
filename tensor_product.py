@@ -53,7 +53,7 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_l3: Optional[int] = None
                                         cg = get_clebsch_gordan(l1, l2, l3, m1, m2, m3)
                                         if cg == 0:
                                             continue
-                                        # normalization =  math.sqrt(2 * l3 + 1)
+                                        # normalization = math.sqrt(2 * l3 + 1)
                                         # normalization = math.sqrt(num_coefficients_per_feat)
                                         normalization = 1
                                         # print("CG coefficient:", cg, l3, m3)
