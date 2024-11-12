@@ -1,3 +1,4 @@
+from typing import Optional
 from clebsch_gordan import get_clebsch_gordan
 from constants import NUM_PARITY_DIMS, PARITY_IDXS
 from parity import parity_idx_to_parity, parity_to_parity_idx
@@ -6,14 +7,18 @@ import jax.numpy as jnp
 import math
 
 
-def tensor_product_v1(irrep1: Irrep, irrep2: Irrep) -> jnp.ndarray:
+def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_l3: Optional[int] = None) -> jnp.ndarray:
     max_l1 = irrep1.l()
     max_l2 = irrep2.l()
     num_irrep1_feats = irrep1.multiplicity()
     num_irrep2_feats = irrep2.multiplicity()
     num_output_feats = num_irrep1_feats * num_irrep2_feats
 
-    max_output_l = max_l1 + max_l2
+    if max_l3 is None:
+        max_output_l = max_l1 + max_l2
+    else:
+        max_output_l = max_l3
+
     num_coefficients_per_feat = (max_output_l + 1) ** 2
     out = jnp.zeros((NUM_PARITY_DIMS, num_coefficients_per_feat, num_output_feats), dtype=jnp.float32)
 

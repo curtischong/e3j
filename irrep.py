@@ -57,6 +57,9 @@ class Irrep():
 
     def get_ith_feature(self, parity_idx: int, ith_feature: int) -> float:
         return self.array[parity_idx, :, ith_feature]
+    
+    def slice_ith_feature(self, ith_feature: int) -> float:
+        return jnp.expand_dims(self.array[:, :, ith_feature], axis=-1)
     # returns true if there is no feature at the given parity and index i
     def is_feature_zero(self, parity_idx: int, ith_feature: int) -> bool:
         subset = self.get_ith_feature(parity_idx, ith_feature)

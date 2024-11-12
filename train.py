@@ -42,7 +42,8 @@ def tetris() -> jraph.GraphsTuple:
     for i in range(len(shapes)):
         pos = shapes[i]
         label = labels[i]
-        senders, receivers = radius_graph(pos, 1.1)
+        # senders, receivers = radius_graph(pos, 1.1)
+        senders, receivers = radius_graph(pos, 10) # make the radius really big so all nodes are connected (just for testing rn. can reduce to 1.1 layer)
         print("senders and receivers:")
         print(senders, receivers)
 
@@ -77,27 +78,43 @@ class e3jLayer(flax.linen.Module):
     def __call__(self, graphs, positions: Float[Array, 'num_nodes 3'], **kwargs):
         # target_irreps = Irreps(self.raw_target_irreps)
 
+        # this function is called ONCE. you have to update ALL edge features here
         def update_edge_fn(_edge_features, sender_features: jnp.ndarray, receiver_features: jnp.ndarray, _globals):
+            # sender features is of shape: [num_edges_communicating, parity_dim, max_l**2, num_channels]
+
+            print("call update_edge_fn")
             # TODO: tensor product with sh???
-            return sender_features
-            # # the only feature we care in the tetris example is the relative position of the receiver to the sender
+            # return sender_features
+            # the only feature we care in the tetris example is the relative position of the receiver to the sender
 
-            # features = positions[graphs.receivers] - positions[graphs.senders]
-            # # print("sender_features")
-            # # print(sender_features.shape)
-            # # the shape of sender features is: (all of the neighbors, 1 ,3)
+            features = positions[graphs.receivers] - positions[graphs.senders]
+            # print("sender_features")
+            # print(sender_features.shape)
+            # the shape of sender features is: (all of the neighbors, 1 ,3)
 
-            # sender_features_irrep = Irrep(sender_features)
+            # this only maps a 3D vector to a spherical harmonic but what about higher dimensional inputs?
+            sh = map_3d_feats_to_spherical_harmonics_repr(
+                features,
+                normalize=True,
+            )
+            # TODO: make this more efficient.
+            # we want to do a 1 feature to 1 feature tensor product for each edge
+            # the result of the tensor product is a tensor of shape: [num_edges_communicating, max_l**2, num_channels]
 
-            # # this only maps a 3D vector to a spherical harmonic but what about higher dimensional inputs?
-            # sh = map_3d_feats_to_spherical_harmonics_repr(
-            #     features,
-            #     normalize=True,
-            # )
-            # tp = tensor_product_v1(sender_features_irrep, sh)
-            # # concatenate these arrays along the channel axis (last one)
+            # tp = jnp.empty_like(sender_features)
+            output_features_shape = list(sender_features.shape)
+            output_features_shape[2] = (self.max_l+1)**2
+            tp = jnp.empty(output_features_shape)
+
+            for node_idx in range(len(graphs.nodes)):
+                node_feats = sender_features[node_idx,:,:,:]
+                sh_feats_for_node = sh.slice_ith_feature(node_idx)
+                res = tensor_product_v1(Irrep(node_feats), Irrep(sh_feats_for_node), max_l3=self.max_l)
+                tp = tp.at[node_idx].set(res)
+            # concatenate these arrays along the channel axis (last one)
             # messages = jnp.concatenate([sender_features, tp], axis=-1)
-            # return messages 
+            print("update edge fn finished")
+            return tp
 
         def update_node_fn(node_features, _outgoing_edge_features, incoming_edge_features, _globals):
             summed_incoming = jnp.sum(incoming_edge_features, axis=0)
@@ -132,12 +149,12 @@ class Model(flax.linen.Module):
     def __call__(self, graphs):
         # positions = e3nn.IrrepsArray("1o", graphs.nodes)
         positions = graphs.nodes
-        graphs = graphs._replace(nodes=jnp.ones((len(positions), 2, 1, 1))) # for each node, ensure it has an empty feature
+        graphs = graphs._replace(nodes=jnp.ones((positions.shape[0], 2, 4, 1))) # for each node, ensure it has an empty feature. 3rd dimension is 4 since it's for l=1
 
         # layers = 2 * ["32x0e + 32x0o + 8x1o + 8x1e + 8x2e + 8x2o"] + ["0o + 7x0e"]
 
         # for irreps in layers:
-        graphs = e3jLayer(max_l=2, num_channels=8, denominator=1)(graphs, positions)
+        graphs = e3jLayer(max_l=1, num_channels=8, denominator=1)(graphs, positions)
         graphs2 = e3jLayer(max_l=1, num_channels=8, denominator=1)(graphs, positions)
         graphs = e3jFinalLayer()(graphs2)
 
