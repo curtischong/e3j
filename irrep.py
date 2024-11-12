@@ -42,7 +42,7 @@ class Irrep():
 
     # calculate l based on the dimensions of the array
     def l(self):
-        print("arr shape", self.array.shape)
+        # print("arr shape", self.array.shape)
         num_irrep_coefficients = self.array.shape[1]
         max_l = int(math.sqrt(num_irrep_coefficients)) - 1
         return max_l

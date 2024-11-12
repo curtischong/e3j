@@ -117,15 +117,13 @@ class e3jLayer(flax.linen.Module):
             return tp
 
         def update_node_fn(node_features, _outgoing_edge_features, incoming_edge_features, _globals):
-            summed_incoming = jnp.sum(incoming_edge_features, axis=0)
-            # print("incoming_edge_features shape", incoming_edge_features.shape)
-            # print("summed_incoming shape", summed_incoming.shape)
+            # summed_incoming = jnp.sum(incoming_edge_features, axis=0) # no need to do this. jraph's aggregation function by default sums the incoming edge features
 
             # node_feats = receiver_features / self.denominator
-            node_feats = flax.linen.Dense(features=2*(self.max_l**2)*self.num_channels, name="linear")(summed_incoming)
+            node_feats = flax.linen.Dense(features=incoming_edge_features.shape[-1], name="linear")(incoming_edge_features)
             # NOTE: removed scalar activation and extra linear layer for now
             return node_feats
-        # return jraph.GraphNetwork(update_edge_fn, update_node_fn)(graphs)
+
         return jraph.GraphNetwork(update_edge_fn, update_node_fn)(graphs)
     
 
@@ -133,15 +131,12 @@ class e3jFinalLayer(flax.linen.Module):
     @flax.linen.compact
     def __call__(self, graphs, **kwargs):
 
-        def update_edge_fn(_edge_features, sender_features: jnp.ndarray, receiver_features: jnp.ndarray, _globals):
-            return sender_features
-
-        def update_node_fn(node_features, _outgoing_edge_features, incoming_edge_features, _globals):
-            summed_incoming = jnp.sum(incoming_edge_features, axis=0)
-
-            node_feats = flax.linen.Dense(features=num_classes, name="linear")(summed_incoming)
+        def update_global_fn(node_features: jnp.ndarray, _edge_features, _globals):
+            reshaped_feats = node_features.reshape(node_features.shape[0], -1) # [num_graphs, all_features]
+            node_feats = flax.linen.Dense(features=num_classes, name="linear")(reshaped_feats)
             return node_feats
-        return jraph.GraphNetwork(update_edge_fn, update_node_fn)(graphs)
+
+        return jraph.GraphNetwork(update_edge_fn=None, update_node_fn=None, update_global_fn=update_global_fn)(graphs)
 
 
 class Model(flax.linen.Module):
@@ -155,22 +150,10 @@ class Model(flax.linen.Module):
 
         # for irreps in layers:
         graphs = e3jLayer(max_l=1, num_channels=8, denominator=1)(graphs, positions)
-        graphs2 = e3jLayer(max_l=1, num_channels=8, denominator=1)(graphs, positions)
-        graphs = e3jFinalLayer()(graphs2)
+        graphs = e3jLayer(max_l=1, num_channels=8, denominator=1)(graphs, positions)
+        graphs = e3jFinalLayer()(graphs)
+        logits = graphs.globals
 
-        # Readout logits
-        # pred = e3nn.scatter_sum(
-        #     graphs.nodes.array, nel=graphs.n_node
-        # )  # [num_graphs, 1 + 7]
-        # print("graphs nodes array", graphs.nodes.array)
-        # pred = graphs.nodes.array[:,:, 1:4]
-        n_node = jnp.array(graphs.n_node)
-        node_graph_ids = jnp.repeat(jnp.arange(len(n_node)), n_node)
-        pred = jax.ops.segment_sum(graphs.nodes, node_graph_ids)
-
-        # odd, even1, even2 = pred[:, :1], pred[:, 1:2], pred[:, 2:]
-        # logits = jnp.concatenate([odd * even1, -odd * even1, even2], axis=1)
-        logits = pred
         assert logits.shape == (len(graphs.n_node), num_classes)  # [num_graphs, num_classes]
 
         return logits
