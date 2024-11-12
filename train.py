@@ -234,7 +234,7 @@ def test_equivariance(model: Model, params: jnp.ndarray):
 
     graphs = jraph.batch([
         jraph.GraphsTuple(
-            nodes=pos.reshape((4, 3)),  # [num_nodes, 3]
+            nodes=pos,
             edges=None,
             globals=None,
             senders=senders,  # [num_edges]
@@ -245,7 +245,32 @@ def test_equivariance(model: Model, params: jnp.ndarray):
     ])
 
     logits = model.apply(params, graphs)
+
+    rotation_matrix = jnp.array([
+        [0.7071, 0.5, 0.5],
+        [0, 0.7071, -0.7071],
+        [-0.7071, 0.5, 0.5],
+    ])
+    pos_rotated = jnp.dot(pos, rotation_matrix.T)
+
+    graphs = jraph.batch([
+        jraph.GraphsTuple(
+            nodes=pos_rotated,
+            edges=None,
+            globals=None,
+            senders=senders,  # [num_edges]
+            receivers=receivers,  # [num_edges]
+            n_node=jnp.array([len(pos)]),  # [num_graphs]
+            n_edge=jnp.array([len(senders)]),  # [num_graphs]
+        )
+    ])
+    # we don't need to rotate the logits since this is a scalar output. it's not a vector
+    rotated_logits = model.apply(params, graphs)
+
+
     print("logits", logits)
+    print("rotated logits", rotated_logits)
+    assert jnp.allclose(logits, rotated_logits, atol=1e-2), "model is not equivariant"
 
 
 if __name__ == "__main__":
