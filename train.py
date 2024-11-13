@@ -149,8 +149,8 @@ class Model(flax.linen.Module):
         # layers = 2 * ["32x0e + 32x0o + 8x1o + 8x1e + 8x2e + 8x2o"] + ["0o + 7x0e"]
 
         # for irreps in layers:
-        graphs = e3jLayer(max_l=2, denominator=1)(graphs, positions)
         graphs = e3jLayer(max_l=3, denominator=1)(graphs, positions)
+        graphs = e3jLayer(max_l=5, denominator=1)(graphs, positions)
         graphs = e3jFinalLayer()(graphs)
         logits = graphs.globals
 
@@ -290,7 +290,7 @@ def test_equivariance(model: Model, params: jnp.ndarray):
                 # we don't need to rotate the logits since this is a scalar output. it's not a vector
                 rotated_logits = model.apply(params, graphs)
 
-                rotational_equivariance_error = jnp.sum(jnp.abs(logits - rotated_logits))
+                rotational_equivariance_error = jnp.mean(jnp.abs(logits - rotated_logits))
                 print("logits", logits)
                 print("rotated logits", rotated_logits)
                 print("logit diff distance", rotational_equivariance_error)
