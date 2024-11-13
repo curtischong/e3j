@@ -278,19 +278,26 @@ def test_equivariance(model: Model, params: jnp.ndarray):
 
     logits = model.apply(params, graphs)
 
-    rotation_matrix = get_rotation_matrix(jnp.pi*0.1, jnp.pi*1.2, jnp.pi*0.8)
-    pos_rotated = jnp.dot(pos, rotation_matrix.T) # we transpose and matrix multiply from the left side because python's vectors are row vectors, NOT column vectors. so we can't just do y=Ax
+    max_distance = 0
+    for angle1 in jnp.arange(0, 1, 0.2):
+        for angle2 in jnp.arange(1, 2, 0.2):
+            for angle3 in jnp.arange(0, 1, 0.2):
+                rotation_matrix = get_rotation_matrix(jnp.pi*angle1, jnp.pi*angle2, jnp.pi*angle3)
+                pos_rotated = jnp.dot(pos, rotation_matrix.T) # we transpose and matrix multiply from the left side because python's vectors are row vectors, NOT column vectors. so we can't just do y=Ax
 
-    graphs = prepare_single_graph(pos_rotated, 1.1)
+                graphs = prepare_single_graph(pos_rotated, 1.1)
 
-    # we don't need to rotate the logits since this is a scalar output. it's not a vector
-    rotated_logits = model.apply(params, graphs)
+                # we don't need to rotate the logits since this is a scalar output. it's not a vector
+                rotated_logits = model.apply(params, graphs)
 
-
-    print("logits", logits)
-    print("rotated logits", rotated_logits)
-    print("logit diff distance", jnp.sum(jnp.abs(logits - rotated_logits)))
+                rotational_equivariance_error = jnp.sum(jnp.abs(logits - rotated_logits))
+                print("logits", logits)
+                print("rotated logits", rotated_logits)
+                print("logit diff distance", rotational_equivariance_error)
+                max_distance = max(max_distance, rotational_equivariance_error)
+    print("max distance", max_distance)
     assert jnp.allclose(logits, rotated_logits, atol=1e-2), "model is not equivariant"
+    print("the model is equivariant!")
 
 
 if __name__ == "__main__":
