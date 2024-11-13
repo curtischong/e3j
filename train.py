@@ -82,7 +82,6 @@ class e3jLayer(flax.linen.Module):
         def update_edge_fn(_edge_features, sender_features: jnp.ndarray, receiver_features: jnp.ndarray, _globals):
             # sender features is of shape: [num_edges_communicating, parity_dim, max_l**2, num_channels]
 
-            print("call update_edge_fn")
             # TODO: tensor product with sh???
             # return sender_features
             # the only feature we care in the tetris example is the relative position of the receiver to the sender
@@ -113,7 +112,6 @@ class e3jLayer(flax.linen.Module):
                 tp = tp.at[node_idx].set(res)
             # concatenate these arrays along the channel axis (last one)
             # messages = jnp.concatenate([sender_features, tp], axis=-1)
-            print("update edge fn finished")
             return tp
 
         def update_node_fn(node_features, _outgoing_edge_features, incoming_edge_features, _globals):
@@ -291,9 +289,9 @@ def test_equivariance(model: Model, params: jnp.ndarray):
                 rotated_logits = model.apply(params, graphs)
 
                 rotational_equivariance_error = jnp.mean(jnp.abs(logits - rotated_logits))
-                print("logits", logits)
-                print("rotated logits", rotated_logits)
-                print("logit diff distance", rotational_equivariance_error)
+                # print("logits", logits)
+                # print("rotated logits", rotated_logits)
+                print("logit diff distance", round(rotational_equivariance_error,7), "\tangle1", round(angle1,6), "\tangle2", round(angle2,6), "\tangle3", round(angle3,6))
                 max_distance = max(max_distance, rotational_equivariance_error)
     print("max distance", max_distance)
     assert jnp.allclose(logits, rotated_logits, atol=1e-2), "model is not equivariant"
