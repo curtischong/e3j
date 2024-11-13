@@ -225,10 +225,10 @@ def prepare_single_graph(pos: jnp.ndarray, radius: float) -> jraph.GraphsTuple:
             nodes=pos,
             edges=None,
             globals=None,
-            senders=senders,  # [num_edges]
-            receivers=receivers,  # [num_edges]
-            n_node=jnp.array([len(pos)]),  # [num_graphs]
-            n_edge=jnp.array([len(senders)]),  # [num_graphs]
+            senders=senders,
+            receivers=receivers,
+            n_node=jnp.array([len(pos)]),
+            n_edge=jnp.array([len(senders)]),
         )
     ])
 
