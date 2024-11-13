@@ -1,6 +1,5 @@
 # Adapted from https://github.com/e3nn/e3nn-jax/blob/main/examples/tetris_point.py
 #  * removed scalar non-linearity for now
-#  * added exports to .bin and .mp files for weights
 import struct
 import time
 
