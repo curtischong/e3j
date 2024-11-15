@@ -101,8 +101,8 @@ class e3jLayer(flax.linen.Module):
         def update_node_fn(node_features, _outgoing_edge_features, incoming_edge_features, _globals):
             # summed_incoming = jnp.sum(incoming_edge_features, axis=0) # no need to do this since jraph's aggregation function by default sums the incoming edge features
 
-            # incoming_edge_features = incoming_edge_features / self.denominator
-            # node_feats = flax.linen.Dense(features=incoming_edge_features.shape[-1], name="linear")(incoming_edge_features)
+            node_features = node_features / self.denominator
+            node_features = flax.linen.Dense(features=node_features.shape[-1], name="linear")(node_features)
             # NOTE: removed scalar activation and extra linear layer for now
             return node_features
 
@@ -267,6 +267,7 @@ def test_equivariance(model: Model, params: jnp.ndarray):
 
                 # we don't need to rotate the logits since this is a scalar output. it's not a vector
                 rotated_logits = model.apply(params, graphs)
+                print("rotated logits", rotated_logits)
 
                 rotational_equivariance_error = jnp.mean(jnp.abs(logits - rotated_logits))
                 print("logit diff distance", round(rotational_equivariance_error,7), "\tangle1", round(angle1,6), "\tangle2", round(angle2,6), "\tangle3", round(angle3,6))
