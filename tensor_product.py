@@ -7,13 +7,13 @@ import jax
 import jax.numpy as jnp
 
 @jax.jit
-def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_l3: Optional[int]) -> jnp.ndarray:
-    max_l1 = irrep1.l()
-    max_l2 = irrep2.l()
+def tensor_product_v1(irrep1: jnp.ndarray, irrep2: jnp.ndarray, max_l3: Optional[int]) -> jnp.ndarray:
+    max_l1 = Irrep.l(irrep1)
+    max_l2 = Irrep.l(irrep2)
 
     # after we do the tensor product, there will be num_irrep1_feats * num_irrep2_feats features
-    num_irrep1_feats = irrep1.num_features()
-    num_irrep2_feats = irrep2.num_features()
+    num_irrep1_feats = Irrep.num_features(irrep1)
+    num_irrep2_feats = Irrep.num_features(irrep2)
     num_output_feats = num_irrep1_feats * num_irrep2_feats
 
     if max_l3 is None:
@@ -29,7 +29,7 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_l3: Optional[int]) -> jn
         for parity1_idx in PARITY_IDXS:
             for parity2_idx in PARITY_IDXS:
                 for feat2_idx in range(num_irrep2_feats):
-                    if irrep1.is_feature_zero(parity1_idx, feat1_idx) or irrep2.is_feature_zero(parity2_idx, feat2_idx):
+                    if Irrep.is_feature_zero(irrep1, parity1_idx, feat1_idx) or Irrep.is_feature_zero(irrep2, parity2_idx, feat2_idx):
                         continue
 
                     feat3_idx = feat1_idx * num_irrep2_feats + feat2_idx
@@ -49,8 +49,8 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_l3: Optional[int]) -> jn
                                         m3 = m1 + m2
                                         if m3 < -l3 or m3 > l3:
                                             continue
-                                        v1 = irrep1.get_coefficient(parity1_idx, feat1_idx, l1, m1)
-                                        v2 = irrep2.get_coefficient(parity2_idx, feat2_idx, l2, m2)
+                                        v1 = Irrep.get_coefficient(irrep1, parity1_idx, feat1_idx, l1, m1)
+                                        v2 = Irrep.get_coefficient(irrep2, parity2_idx, feat2_idx, l2, m2)
                                         coef_idx = Irrep.coef_idx(l3, m3)
                                         cg = get_clebsch_gordan(l1, l2, l3, m1, m2, m3)
                                         normalization = 1

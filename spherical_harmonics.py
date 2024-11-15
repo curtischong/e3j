@@ -35,7 +35,7 @@ from e3x.so3.irreps import spherical_harmonics, solid_harmonics
 
 
 # If you look at the spherical harmonics here: http://openmopac.net/manual/real_spherical_harmonics.html, you'll see that each cartesian axis is raised to the same power
-def map_3d_feats_to_spherical_harmonics_repr(feats_3d: Float[Array, "num_feats 3"], normalize: bool=False) -> Irrep:
+def map_3d_feats_to_spherical_harmonics_repr(feats_3d: Float[Array, "num_feats 3"], normalize: bool=False) -> jnp.ndarray:
     num_feats = feats_3d.shape[0]
     max_l = 2
     num_coefficients_per_feat = (max_l+1)**2 # l=0 has 1 coefficient, l=1 has 3. so 4 total coefficients
@@ -62,7 +62,7 @@ def map_3d_feats_to_spherical_harmonics_repr(feats_3d: Float[Array, "num_feats 3
                 parity_idx = parity_to_parity_idx(parity_for_l(l))
                 arr = arr.at[parity_idx, Irrep.coef_idx(l,m), ith_feat].set(coefficient)
 
-    return Irrep(arr)
+    return arr
 
 
 def map_1d_feats_to_spherical_harmonics_repr(feats_1d: list[jnp.ndarray], parity=EVEN_PARITY) -> Irrep:

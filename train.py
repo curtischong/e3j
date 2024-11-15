@@ -93,8 +93,8 @@ class e3jLayer(flax.linen.Module):
             # Perform tensor product for each edge
             for node_idx in range(len(graphs.nodes)):
                 node_feats = sender_features[node_idx, :, :, :]
-                sh_feats_for_node = sh.slice_ith_feature(node_idx)
-                res = tensor_product_v1(Irrep(node_feats), Irrep(sh_feats_for_node), max_l3=self.max_l)
+                sh_feats_for_node = Irrep.slice_ith_feature(sh, node_idx)
+                res = tensor_product_v1(node_feats, sh_feats_for_node, max_l3=self.max_l)
                 tp = tp.at[node_idx].set(res)
             return tp
 
@@ -287,5 +287,5 @@ def test_equivariance(model: Model, params: jnp.ndarray):
 
 if __name__ == "__main__":
     # TODO:(curtis): enable this after
-    # with jax.disable_jit():
-    train()
+    with jax.disable_jit():
+        train()
