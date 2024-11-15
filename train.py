@@ -98,13 +98,16 @@ class e3jLayer(flax.linen.Module):
                 tp = tp.at[node_idx].set(res)
             return tp
 
-        def update_node_fn(node_features, _outgoing_edge_features, incoming_edge_features, _globals):
+        def update_node_fn(old_node_features, _outgoing_edge_features, incoming_edge_features, _globals):
             # summed_incoming = jnp.sum(incoming_edge_features, axis=0) # no need to do this since jraph's aggregation function by default sums the incoming edge features
 
-            node_features = node_features / self.denominator
-            node_features = flax.linen.Dense(features=node_features.shape[-1], name="linear")(node_features)
+            # TODO: sum old_node_features with incoming_edge_features
+
+            # node_features = incoming_edge_features / self.denominator
+            # node_features = flax.linen.Dense(features=node_features.shape[-1], name="linear", use_bias=False)(node_features)
             # NOTE: removed scalar activation and extra linear layer for now
-            return node_features
+            # return node_features
+            return incoming_edge_features
 
         return jraph.GraphNetwork(update_edge_fn, update_node_fn)(graphs)
     
@@ -115,7 +118,8 @@ class e3jFinalLayer(flax.linen.Module):
 
         def update_global_fn(node_features: jnp.ndarray, _edge_features, _globals):
             # they summed all of the node features across each graph. so the node_features is of shape: [num_graphs, parity_dim, max_l**2, num_channels]
-            reshaped_feats = jnp.squeeze(jnp.sum(node_features, axis=1), axis=-1) # remove the channel dim to get [num_graphs, max_l**2]
+            # reshaped_feats = jnp.squeeze(jnp.sum(node_features, axis=1), axis=-1) # remove the channel dim to get [num_graphs, max_l**2]
+            reshaped_feats = node_features.reshape(node_features.shape[0], -1) # [num_graphs, all_features]
             return flax.linen.Dense(features=num_classes, name="linear")(reshaped_feats)
 
         return jraph.GraphNetwork(update_edge_fn=None, update_node_fn=None, update_global_fn=update_global_fn)(graphs)
