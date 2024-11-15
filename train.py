@@ -101,10 +101,10 @@ class e3jLayer(flax.linen.Module):
         def update_node_fn(node_features, _outgoing_edge_features, incoming_edge_features, _globals):
             # summed_incoming = jnp.sum(incoming_edge_features, axis=0) # no need to do this since jraph's aggregation function by default sums the incoming edge features
 
-            incoming_edge_features = incoming_edge_features / self.denominator
-            node_feats = flax.linen.Dense(features=incoming_edge_features.shape[-1], name="linear")(incoming_edge_features)
+            # incoming_edge_features = incoming_edge_features / self.denominator
+            # node_feats = flax.linen.Dense(features=incoming_edge_features.shape[-1], name="linear")(incoming_edge_features)
             # NOTE: removed scalar activation and extra linear layer for now
-            return node_feats
+            return node_features
 
         return jraph.GraphNetwork(update_edge_fn, update_node_fn)(graphs)
     
@@ -114,9 +114,9 @@ class e3jFinalLayer(flax.linen.Module):
     def __call__(self, graphs, **kwargs):
 
         def update_global_fn(node_features: jnp.ndarray, _edge_features, _globals):
-            reshaped_feats = node_features.reshape(node_features.shape[0], -1) # [num_graphs, all_features]
-            node_feats = flax.linen.Dense(features=num_classes, name="linear")(reshaped_feats)
-            return node_feats
+            # they summed all of the node features across each graph. so the node_features is of shape: [num_graphs, parity_dim, max_l**2, num_channels]
+            reshaped_feats = jnp.squeeze(jnp.sum(node_features, axis=1), axis=-1) # remove the channel dim to get [num_graphs, max_l**2]
+            return flax.linen.Dense(features=num_classes, name="linear")(reshaped_feats)
 
         return jraph.GraphNetwork(update_edge_fn=None, update_node_fn=None, update_global_fn=update_global_fn)(graphs)
 
@@ -134,7 +134,7 @@ class Model(flax.linen.Module):
         graphs = e3jFinalLayer()(graphs)
         logits = graphs.globals
 
-        assert logits.shape == (len(graphs.n_node), num_classes)  # [num_graphs, num_classes]
+        assert logits.shape == (len(graphs.n_node), num_classes), f"logits shape: {logits.shape}, num_nodes: {len(graphs.n_node)}, num_classes: {num_classes}"
 
         return logits
 
