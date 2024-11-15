@@ -26,7 +26,7 @@ def tensor_product_v1(irrep1: Irrep, irrep2: Irrep, max_l3: Optional[int] = None
         for feat2_idx in range(num_irrep2_feats):
             for parity1_idx in PARITY_IDXS:
                 for parity2_idx in PARITY_IDXS:
-                    if irrep1.is_feature_zero(parity1_idx, feat1_idx) or irrep2.is_feature_zero(parity2_idx, feat2_idx):
+                    if jnp.logical_or( irrep1.is_feature_zero(parity1_idx, feat1_idx), irrep2.is_feature_zero(parity2_idx, feat2_idx)):
                         continue
                     feat3_idx = feat1_idx * num_irrep2_feats + feat2_idx
                     parity3 = parity_idx_to_parity(parity1_idx) * parity_idx_to_parity(parity2_idx)
