@@ -119,8 +119,12 @@ class e3jFinalLayer(flax.linen.Module):
         def update_global_fn(node_features: jnp.ndarray, _edge_features, _globals):
             # they summed all of the node features across each graph. so the node_features is of shape: [num_graphs, parity_dim, max_l**2, num_channels]
             # reshaped_feats = jnp.squeeze(jnp.sum(node_features, axis=1), axis=-1) # remove the channel dim to get [num_graphs, max_l**2]
-            reshaped_feats = node_features.reshape(node_features.shape[0], -1) # [num_graphs, all_features]
-            return flax.linen.Dense(features=num_classes, name="linear")(reshaped_feats)
+            # reshaped_feats = node_features.reshape(node_features.shape[0], -1) # [num_graphs, all_features]
+            scalar_feats = node_features[:,0,0,:] # [num_graphs, 1 , 1, num_channels] only get the even scalar features
+            scalar_feats = node_features.reshape(node_features.shape[0], -1) # [num_graphs, all_features]
+            res = flax.linen.Dense(features=num_classes, name="linear")(scalar_feats)
+            print("res", res)
+            return res
 
         return jraph.GraphNetwork(update_edge_fn=None, update_node_fn=None, update_global_fn=update_global_fn)(graphs)
 
@@ -175,29 +179,29 @@ def train(steps=200):
     init = jax.jit(model.init)
     params = init(jax.random.PRNGKey(0), graphs)
     test_equivariance(model, params)
-    opt_state = opt.init(params)
+    # opt_state = opt.init(params)
 
-    # compile jit
-    wall = time.perf_counter()
-    print("compiling...", flush=True)
-    _, _, accuracy = update_fn(params, opt_state, graphs)
-    print(f"initial accuracy = {100 * accuracy:.0f}%", flush=True)
-    print(f"compilation took {time.perf_counter() - wall:.1f}s")
+    # # compile jit
+    # wall = time.perf_counter()
+    # print("compiling...", flush=True)
+    # _, _, accuracy = update_fn(params, opt_state, graphs)
+    # print(f"initial accuracy = {100 * accuracy:.0f}%", flush=True)
+    # print(f"compilation took {time.perf_counter() - wall:.1f}s")
 
-    # train
-    wall = time.perf_counter()
-    print("training...", flush=True)
-    for _ith_step in range(steps):
-        params, opt_state, accuracy = update_fn(params, opt_state, graphs)
+    # # train
+    # wall = time.perf_counter()
+    # print("training...", flush=True)
+    # for _ith_step in range(steps):
+    #     params, opt_state, accuracy = update_fn(params, opt_state, graphs)
 
-        if accuracy == 1.0:
-           break
+    #     if accuracy == 1.0:
+    #        break
 
-    print(f"final accuracy = {100 * accuracy:.0f}%")
+    # print(f"final accuracy = {100 * accuracy:.0f}%")
 
-    # serialize for run_tetris.py
-    with open("tetris.mp", "wb") as f:
-        f.write(flax.serialization.to_bytes(params))
+    # # serialize for run_tetris.py
+    # with open("tetris.mp", "wb") as f:
+    #     f.write(flax.serialization.to_bytes(params))
     
 def prepare_single_graph(pos: jnp.ndarray, radius: float) -> jraph.GraphsTuple:
     senders, receivers = radius_graph(pos, radius) # make the radius really big so all nodes are connected (just for testing rn. can reduce to 1.1 layer)
