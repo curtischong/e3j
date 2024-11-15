@@ -287,5 +287,5 @@ def test_equivariance(model: Model, params: jnp.ndarray):
 
 if __name__ == "__main__":
     # TODO:(curtis): enable this after
-    with jax.disable_jit():
-        train()
+    # with jax.disable_jit():
+    train()
