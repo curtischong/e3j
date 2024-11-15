@@ -16,6 +16,7 @@ from irrep import Irrep
 from spherical_harmonics import map_3d_feats_to_spherical_harmonics_repr
 from tensor_product import tensor_product_v1
 from jaxtyping import Array, Float
+from utils import plot_3d_coords
 
 
 shapes = [
@@ -123,7 +124,7 @@ class e3jFinalLayer(flax.linen.Module):
             scalar_feats = node_features[:,0,0,:] # [num_graphs, 1 , 1, num_channels] only get the even scalar features
             scalar_feats = node_features.reshape(node_features.shape[0], -1) # [num_graphs, all_features]
             res = flax.linen.Dense(features=num_classes, name="linear")(scalar_feats)
-            print("res", res)
+            print("res", scalar_feats)
             return res
 
         return jraph.GraphNetwork(update_edge_fn=None, update_node_fn=None, update_global_fn=update_global_fn)(graphs)
@@ -260,7 +261,7 @@ def test_equivariance(model: Model, params: jnp.ndarray):
     pos = [[0, 0, 0], [0, 0, 1], [0, 0, 2], [0, 1, 0]]  # L
     pos = jnp.array(pos, dtype=default_dtype)
 
-    graphs = prepare_single_graph(pos, 1.1)
+    graphs = prepare_single_graph(pos, 11)
 
     logits = model.apply(params, graphs)
 
@@ -269,9 +270,11 @@ def test_equivariance(model: Model, params: jnp.ndarray):
         for angle2 in jnp.arange(1, 2, 0.2):
             for angle3 in jnp.arange(0, 1, 0.2):
                 rotation_matrix = get_rotation_matrix(jnp.pi*angle1, jnp.pi*angle2, jnp.pi*angle3)
+                # plot_3d_coords(pos)
                 pos_rotated = jnp.dot(pos, rotation_matrix.T) # we transpose and matrix multiply from the left side because python's vectors are row vectors, NOT column vectors. so we can't just do y=Ax
+                # plot_3d_coords(pos_rotated)
 
-                graphs = prepare_single_graph(pos_rotated, 1.1)
+                graphs = prepare_single_graph(pos_rotated, 11)
 
                 # we don't need to rotate the logits since this is a scalar output. it's not a vector
                 rotated_logits = model.apply(params, graphs)
