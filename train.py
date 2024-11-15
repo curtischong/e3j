@@ -2,7 +2,6 @@
 #  * removed scalar non-linearity for now
 
 import time
-
 import flax
 import flax.serialization
 import jax
@@ -16,7 +15,6 @@ from irrep import Irrep
 from spherical_harmonics import map_3d_feats_to_spherical_harmonics_repr
 from tensor_product import tensor_product_v1
 from jaxtyping import Array, Float
-from utils import plot_3d_coords
 
 
 shapes = [
@@ -176,113 +174,33 @@ def train(steps=200):
     # initialize
     init = jax.jit(model.init)
     params = init(jax.random.PRNGKey(0), graphs)
-    test_equivariance(model, params)
-    # opt_state = opt.init(params)
+    opt_state = opt.init(params)
 
-    # # compile jit
-    # wall = time.perf_counter()
-    # print("compiling...", flush=True)
-    # _, _, accuracy = update_fn(params, opt_state, graphs)
-    # print(f"initial accuracy = {100 * accuracy:.0f}%", flush=True)
-    # print(f"compilation took {time.perf_counter() - wall:.1f}s")
+    # compile jit
+    wall = time.perf_counter()
+    print("compiling...", flush=True)
+    _, _, accuracy = update_fn(params, opt_state, graphs)
+    print(f"initial accuracy = {100 * accuracy:.0f}%", flush=True)
+    print(f"compilation took {time.perf_counter() - wall:.1f}s")
 
-    # # train
-    # wall = time.perf_counter()
-    # print("training...", flush=True)
-    # for _ith_step in range(steps):
-    #     params, opt_state, accuracy = update_fn(params, opt_state, graphs)
+    # train
+    wall = time.perf_counter()
+    print("training...", flush=True)
+    for _ith_step in range(steps):
+        params, opt_state, accuracy = update_fn(params, opt_state, graphs)
 
-    #     if accuracy == 1.0:
-    #        break
+        if accuracy == 1.0:
+           break
 
-    # print(f"final accuracy = {100 * accuracy:.0f}%")
+    print(f"final accuracy = {100 * accuracy:.0f}%")
 
-    # # serialize for run_tetris.py
-    # with open("tetris.mp", "wb") as f:
-    #     f.write(flax.serialization.to_bytes(params))
+    # serialize for run_tetris.py
+    with open("tetris.mp", "wb") as f:
+        f.write(flax.serialization.to_bytes(params))
     
-def prepare_single_graph(pos: jnp.ndarray, radius: float) -> jraph.GraphsTuple:
-    senders, receivers = radius_graph(pos, radius) # make the radius really big so all nodes are connected (just for testing rn. can reduce to 1.1 layer)
-
-    return jraph.batch([
-        jraph.GraphsTuple(
-            nodes=pos,
-            edges=None,
-            globals=None,
-            senders=senders,
-            receivers=receivers,
-            n_node=jnp.array([len(pos)]),
-            n_edge=jnp.array([len(senders)]),
-        )
-    ])
-
-def get_rotation_matrix(roll: float, pitch: float, yaw: float) -> jnp.ndarray:
-    """
-    Returns a 3x3 rotation matrix given roll, pitch, and yaw angles.
-    
-    Parameters:
-    - roll: Rotation angle around the x-axis in radians.
-    - pitch: Rotation angle around the y-axis in radians.
-    - yaw: Rotation angle around the z-axis in radians.
-    
-    Returns:
-    - A 3x3 JAX array representing the rotation matrix.
-    """
-    # Rotation matrix around the x-axis
-    Rx = jnp.array([
-        [1, 0, 0],
-        [0, jnp.cos(roll), -jnp.sin(roll)],
-        [0, jnp.sin(roll), jnp.cos(roll)]
-    ])
-    
-    # Rotation matrix around the y-axis
-    Ry = jnp.array([
-        [jnp.cos(pitch), 0, jnp.sin(pitch)],
-        [0, 1, 0],
-        [-jnp.sin(pitch), 0, jnp.cos(pitch)]
-    ])
-    
-    # Rotation matrix around the z-axis
-    Rz = jnp.array([
-        [jnp.cos(yaw), -jnp.sin(yaw), 0],
-        [jnp.sin(yaw), jnp.cos(yaw), 0],
-        [0, 0, 1]
-    ])
-    
-    # Combine the rotations: R = Rz * Ry * Rx
-    R = Rz @ Ry @ Rx
-    return R
 
 
-def test_equivariance(model: Model, params: jnp.ndarray):
-    pos = [[0, 0, 0], [0, 0, 1], [0, 0, 2], [0, 1, 0]]  # L
-    pos = jnp.array(pos, dtype=default_dtype)
 
-    graphs = prepare_single_graph(pos, 11)
-
-    logits = model.apply(params, graphs)
-
-    max_distance = 0
-    for angle1 in jnp.arange(0, 1, 0.2):
-        for angle2 in jnp.arange(1, 2, 0.2):
-            for angle3 in jnp.arange(0, 1, 0.2):
-                rotation_matrix = get_rotation_matrix(jnp.pi*angle1, jnp.pi*angle2, jnp.pi*angle3)
-                # plot_3d_coords(pos)
-                pos_rotated = jnp.dot(pos, rotation_matrix.T) # we transpose and matrix multiply from the left side because python's vectors are row vectors, NOT column vectors. so we can't just do y=Ax
-                # plot_3d_coords(pos_rotated)
-
-                graphs = prepare_single_graph(pos_rotated, 11)
-
-                # we don't need to rotate the logits since this is a scalar output. it's not a vector
-                rotated_logits = model.apply(params, graphs)
-                print("rotated logits", rotated_logits)
-
-                rotational_equivariance_error = jnp.mean(jnp.abs(logits - rotated_logits))
-                print("logit diff distance", round(rotational_equivariance_error,7), "\tangle1", round(angle1,6), "\tangle2", round(angle2,6), "\tangle3", round(angle3,6))
-                max_distance = max(max_distance, rotational_equivariance_error)
-    print("max distance", max_distance)
-    assert jnp.allclose(logits, rotated_logits, atol=1e-2), "model is not equivariant"
-    print("the model is equivariant!")
 
 
 if __name__ == "__main__":

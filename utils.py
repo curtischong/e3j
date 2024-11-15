@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import jax.numpy as jnp
 
 def plot_3d_coords(coords, title="3D Coordinates Plot"):
     """
