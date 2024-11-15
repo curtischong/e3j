@@ -114,21 +114,22 @@ class e3jLayer(flax.linen.Module):
     
 
 class e3jFinalLayer(flax.linen.Module):
-    @flax.linen.compact
-    def __call__(self, graphs, **kwargs):
+    # do NOT use @flax.linen.compact because otherwise, the linear layer will reinitialize and have diff weights
+    # I think it's because we're defining it inside the update_global_fn function, not directly inside the __call__ function???
+    # or maybe it's just a bug when we're not JITing the model (which I do during testing)
+    def setup(self):
+        # Define the linear layer here to avoid compact-style
+        self.linear = flax.linen.Dense(features=num_classes, name="linear")
 
+    def __call__(self, graphs, **kwargs):
         def update_global_fn(node_features: jnp.ndarray, _edge_features, _globals):
-            # they summed all of the node features across each graph. so the node_features is of shape: [num_graphs, parity_dim, max_l**2, num_channels]
-            # reshaped_feats = jnp.squeeze(jnp.sum(node_features, axis=1), axis=-1) # remove the channel dim to get [num_graphs, max_l**2]
-            # reshaped_feats = node_features.reshape(node_features.shape[0], -1) # [num_graphs, all_features]
-            scalar_feats = node_features[:,0,0,:] # [num_graphs, 1 , 1, num_channels] only get the even scalar features
-            scalar_feats = node_features.reshape(node_features.shape[0], -1) # [num_graphs, all_features]
-            res = flax.linen.Dense(features=num_classes, name="linear")(scalar_feats)
-            print("res", scalar_feats)
+            # Extract only the even scalar features
+            scalar_feats = node_features[:, 0, 0, :]  # [num_graphs, 1, 1, num_channels]
+            scalar_feats = scalar_feats.reshape(scalar_feats.shape[0], -1)  # [num_graphs, all_features]
+            res = self.linear(scalar_feats)
             return res
 
         return jraph.GraphNetwork(update_edge_fn=None, update_node_fn=None, update_global_fn=update_global_fn)(graphs)
-
 
 class Model(flax.linen.Module):
     @flax.linen.compact
