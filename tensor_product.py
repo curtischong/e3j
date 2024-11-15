@@ -16,10 +16,11 @@ def tensor_product_v1(irrep1: jnp.ndarray, irrep2: jnp.ndarray, max_l3: Optional
     num_irrep2_feats = Irrep.num_features(irrep2)
     num_output_feats = num_irrep1_feats * num_irrep2_feats
 
-    if max_l3 is None:
-        max_output_l = max_l1 + max_l2
-    else:
-        max_output_l = max_l3
+    max_output_l = max_l1 + max_l2
+    # if max_l3 is None:
+    #     max_output_l = max_l1 + max_l2
+    # else:
+    #     max_output_l = max_l3
 
     num_coefficients_per_feat = (max_output_l+1)**2 # l=0 has 1 coefficient, l=1 has 3, l=2 has 5, etc. This formula gives the sum of all these coefficients
 

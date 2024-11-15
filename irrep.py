@@ -39,14 +39,14 @@ class Irrep():
     # calculate l based on the dimensions of the array
     @staticmethod
     def l(array: jnp.ndarray) -> int:
-        num_irrep_coefficients = array.shape[1]
+        num_irrep_coefficients = int(array.shape[1])
         max_l = int(math.sqrt(num_irrep_coefficients)) - 1
         return max_l
 
     # this is the number of times the irrep is repeated
     @staticmethod
     def num_features(array):
-        return array.shape[2]
+        return int(array.shape[2])
 
     @staticmethod
     def get_coefficient(array: jnp.ndarray, parity_idx:int, ith_feature: int, l: int, m: int) -> float:
