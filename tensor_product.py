@@ -7,7 +7,7 @@ import jax
 import jax.numpy as jnp
 import e3x
 
-def tensor_product_v1(irrep1: jnp.ndarray, irrep2: jnp.ndarray, max_l3: Optional[int]) -> jnp.ndarray:
+def tensor_product_v1(irrep1: jnp.ndarray, irrep2: jnp.ndarray) -> jnp.ndarray:
     max_l1 = Irrep.l(irrep1)
     max_l2 = Irrep.l(irrep2)
 
@@ -110,17 +110,18 @@ def tensor_product_v2(irrep1: jnp.ndarray, irrep2: jnp.ndarray) -> jnp.ndarray:
                         indices3 = Irrep.coef_indices_for_l(l3)
                         num_m3 = 2 * l3 + 1
                         
-                       # Get Clebsch-Gordan coefficients
+                        # Get Clebsch-Gordan coefficients
                         cg_matrix = e3x.so3.irreps.clebsch_gordan_for_degrees(l1, l2, l3)  # Shape: [num_m1, num_m2, num_m3]
                         cg_matrix = cg_matrix.reshape((num_m1 * num_m2, num_m3))  # Shape: [num_m1 * num_m2, num_m3]
 
                         # Compute outer product of v1 and v2
+                        # we want the outer product because it multiplies all possibilities of v1 and v2 together
                         v1v2 = jnp.einsum('im,jn->ijmn', v1, v2)  # Shape: [num_m1, num_m2, num_irrep1_feats, num_irrep2_feats]
                         v1v2 = v1v2.reshape((num_m1 * num_m2, num_irrep1_feats * num_irrep2_feats))  # Shape: [num_m1 * num_m2, num_output_feats]
-                        # v1v2 = v1v2.T  # Transpose to shape: [num_output_feats, num_m1 * num_m2]
+                        v1v2 = v1v2.T  # Transpose to shape: [num_output_feats, num_m1 * num_m2]
 
                         # Multiply with Clebsch-Gordan coefficients
-                        v3 = v1v2 @ cg_matrix  # Shape: [num_output_feats, num_m3]
+                        v3 = jnp.dot(v1v2, cg_matrix)  # Shape: [num_output_feats, num_m3]
                         v3 = v3.T  # Transpose to shape: [num_m3, num_output_feats]
 
                         # Accumulate into output tensor

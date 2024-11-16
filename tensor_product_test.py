@@ -29,7 +29,7 @@ def test_matches_e3nn():
     print(irrep1)
     print(irrep2)
 
-    print(tensor_product_v1(irrep1, irrep2).tolist())
+    print(tensor_product_v2(irrep1, irrep2).tolist())
 
 
     e3nn_irrep1 = e3nn_jax.spherical_harmonics("1x0e + 1x1o", feat1, normalize=True, normalization="norm")
@@ -66,5 +66,6 @@ def test_matches_e3nn():
     # print("Resulting coefficients:", result)
 
 if __name__ == "__main__":
-    with jax.disable_jit():
-        test_same_results_across_versions()
+    test_matches_e3nn()
+    # with jax.disable_jit():
+    #     test_same_results_across_versions()
