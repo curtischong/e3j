@@ -12,7 +12,7 @@ def test_same_results_across_versions():
 
     irrep1 = map_3d_feats_to_spherical_harmonics_repr(jnp.expand_dims(feat1, axis=0))
     irrep2 = map_3d_feats_to_spherical_harmonics_repr(jnp.expand_dims(feat2, axis=0))
-    v1_res = tensor_product_v1(irrep1, irrep2, max_l3=5)
+    v1_res = tensor_product_v1(irrep1, irrep2)
     v2_res = tensor_product_v2(irrep1, irrep2)
     print("v1 res:", v1_res)
     print("v2 res:", v2_res)
@@ -66,6 +66,6 @@ def test_matches_e3nn():
     # print("Resulting coefficients:", result)
 
 if __name__ == "__main__":
-    test_matches_e3nn()
-    # with jax.disable_jit():
-    #     test_same_results_across_versions()
+    # test_matches_e3nn()
+    with jax.disable_jit():
+        test_same_results_across_versions()
