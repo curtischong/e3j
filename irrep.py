@@ -66,6 +66,10 @@ class Irrep():
         subset = Irrep.get_ith_feature(array, parity_idx, ith_feature)
         # print("subset:", subset, jnp.all(subset == 0))
         return jnp.all(subset == 0)
+    
+    @staticmethod
+    def coef_indices_for_l(l: int) -> jnp.ndarray:
+        return jnp.array([Irrep.coef_idx(l, m) for m in range(-l, l + 1)])
 
     # Note: you only use this for predicting outputs I believe. cause it's kinda sus to just throw out all other coefficients, especially the l=0 coefficient
     # But also I think this is a bad way of predicitng outputs? I think summing across all coefficients is better. I'm only leaving this in here
