@@ -169,8 +169,8 @@ def train(steps=200):
 
         updates, opt_state = opt.update(grads, opt_state)
         params = optax.apply_updates(params, updates)
-        print(f"accuracy = {100 * accuracy:.0f}%, logits = {logits}")
-        return params, opt_state, accuracy
+        # print(f"accuracy = {100 * accuracy:.0f}%, logits = {logits}")
+        return params, opt_state, accuracy, logits
 
     # dataset
     graphs = tetris()
@@ -192,8 +192,8 @@ def train(steps=200):
     wall = time.perf_counter()
     print("training...", flush=True)
     for _ith_step in range(steps):
-        print("step", _ith_step)
-        params, opt_state, accuracy = update_fn(params, opt_state, graphs)
+        params, opt_state, accuracy, logits = update_fn(params, opt_state, graphs)
+        print(f"step {_ith_step}, accuracy = {100 * accuracy:.0f}%, logits = {logits}")
 
         if accuracy == 1.0:
            break
