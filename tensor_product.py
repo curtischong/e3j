@@ -7,7 +7,6 @@ import jax
 import jax.numpy as jnp
 import e3x
 
-@jax.jit
 def tensor_product_v1(irrep1: jnp.ndarray, irrep2: jnp.ndarray, max_l3: Optional[int]) -> jnp.ndarray:
     max_l1 = Irrep.l(irrep1)
     max_l2 = Irrep.l(irrep2)

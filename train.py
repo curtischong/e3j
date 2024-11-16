@@ -169,6 +169,7 @@ def train(steps=200):
 
         updates, opt_state = opt.update(grads, opt_state)
         params = optax.apply_updates(params, updates)
+        print(f"accuracy = {100 * accuracy:.0f}%, logits = {logits}")
         return params, opt_state, accuracy
 
     # dataset
