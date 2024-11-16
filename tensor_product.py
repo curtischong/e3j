@@ -124,6 +124,8 @@ def tensor_product_v2(irrep1: jnp.ndarray, irrep2: jnp.ndarray) -> jnp.ndarray:
                         v3 = jnp.dot(v1v2, cg_matrix)  # Shape: [num_output_feats, num_m3]
                         v3 = v3.T  # Transpose to shape: [num_m3, num_output_feats]
                         if indices3[0] == 0:
+                            # This is a very good print statement to use to debug. cause the first index of e3nn is always 1. but our first index is 1.5443310737609863
+                            # after breaking this down, I see I'm adding an extra 0.5443310737609863
                             print("v3:", v3, "l1:", l1, "l2:", l2, "l3:", l3, "p1:", p1, "p2:", p2, "p3:", p3)
 
                         # Accumulate into output tensor
