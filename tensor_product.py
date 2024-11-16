@@ -1,6 +1,6 @@
 from typing import Optional
 from clebsch_gordan import get_clebsch_gordan
-from constants import EVEN_PARITY, NUM_PARITY_DIMS, ODD_PARITY, PARITY_IDXS
+from constants import EVEN_PARITY, EVEN_PARITY_IDX, NUM_PARITY_DIMS, ODD_PARITY, ODD_PARITY_IDX, PARITY_IDXS
 from parity import parity_idx_to_parity, parity_to_parity_idx
 from irrep import Irrep
 import jax
@@ -79,7 +79,7 @@ def tensor_product_v2(irrep1: jnp.ndarray, irrep2: jnp.ndarray) -> jnp.ndarray:
     out = jnp.zeros((NUM_PARITY_DIMS, num_coefficients_per_feat, num_output_feats), dtype=jnp.float32)
     
     # Precompute parity combinations
-    parity3_indices = jnp.array([[EVEN_PARITY, ODD_PARITY], [ODD_PARITY, EVEN_PARITY]])
+    parity3_indices = jnp.array([[EVEN_PARITY_IDX, ODD_PARITY_IDX], [ODD_PARITY_IDX, EVEN_PARITY_IDX]])
     
     # Precompute feature indices combinations
     feat1_indices = jnp.arange(num_irrep1_feats)
@@ -113,7 +113,7 @@ def tensor_product_v2(irrep1: jnp.ndarray, irrep2: jnp.ndarray) -> jnp.ndarray:
                         # Get Clebsch-Gordan coefficients
                         cg_matrix = e3x.so3.irreps.clebsch_gordan_for_degrees(l1, l2, l3)  # Shape: [num_m1, num_m2, num_m3]
                         cg_matrix = cg_matrix.reshape((num_m1 * num_m2, num_m3))
-                        
+
                         # Compute outer product of v1 and v2
                         v1v2 = jnp.einsum('im,jn->ijmn', v1, v2)  # Shape: [num_m1, num_irrep1_feats, num_m2, num_irrep2_feats]
                         v1v2 = v1v2.reshape((num_m1 * num_m2, num_irrep1_feats * num_irrep2_feats))
