@@ -184,7 +184,7 @@ def train(steps=200):
     # compile jit
     wall = time.perf_counter()
     print("compiling...", flush=True)
-    _, _, accuracy = update_fn(params, opt_state, graphs)
+    _, _, accuracy, _ = update_fn(params, opt_state, graphs)
     print(f"initial accuracy = {100 * accuracy:.0f}%", flush=True)
     print(f"compilation took {time.perf_counter() - wall:.1f}s")
 
