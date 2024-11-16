@@ -14,7 +14,7 @@ def tensor_product_v1(irrep1: jnp.ndarray, irrep2: jnp.ndarray) -> jnp.ndarray:
     # after we do the tensor product, there will be num_irrep1_feats * num_irrep2_feats features
     num_irrep1_feats = Irrep.num_features(irrep1)
     num_irrep2_feats = Irrep.num_features(irrep2)
-    num_output_feats = num_irrep1_feats * num_irrep2_feats
+    num_output_feats = num_irrep1_feats * num_irrep2_feats # THIS IS WRONG. see 1x0e+1x1o tensor product 1x0e+1x1o example. It produces 2x0e+2x1o+1x1e+1x2e (notice how there are 2x0e representations since we tensor product 1x1o with 1x1o generating another 0e representation)
 
     max_output_l = max_l1 + max_l2
     # if max_l3 is None:
