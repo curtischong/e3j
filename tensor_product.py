@@ -123,6 +123,8 @@ def tensor_product_v2(irrep1: jnp.ndarray, irrep2: jnp.ndarray) -> jnp.ndarray:
                         # Multiply with Clebsch-Gordan coefficients
                         v3 = jnp.dot(v1v2, cg_matrix)  # Shape: [num_output_feats, num_m3]
                         v3 = v3.T  # Transpose to shape: [num_m3, num_output_feats]
+                        if indices3[0] == 0:
+                            print("v3:", v3, "l1:", l1, "l2:", l2, "l3:", l3, "p1:", p1, "p2:", p2, "p3:", p3)
 
                         # Accumulate into output tensor
                         out = out.at[p3, indices3[:, None], feat3_indices[None, :]].add(v3)

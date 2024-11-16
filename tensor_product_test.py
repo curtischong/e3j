@@ -66,6 +66,6 @@ def test_matches_e3nn():
     # print("Resulting coefficients:", result)
 
 if __name__ == "__main__":
-    # test_matches_e3nn()
     with jax.disable_jit():
-        test_same_results_across_versions()
+        test_matches_e3nn()
+        # test_same_results_across_versions()
