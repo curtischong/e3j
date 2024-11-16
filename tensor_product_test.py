@@ -3,6 +3,7 @@ from tensor_product import tensor_product_v1, tensor_product_v2
 import jax.numpy as jnp
 from e3nn_jax import tensor_product
 import e3nn_jax
+import jax
 
 
 def test_same_results_across_versions():
@@ -65,4 +66,5 @@ def test_matches_e3nn():
     # print("Resulting coefficients:", result)
 
 if __name__ == "__main__":
-    test_same_results_across_versions()
+    with jax.disable_jit():
+        test_same_results_across_versions()
