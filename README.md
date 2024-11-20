@@ -1,3 +1,10 @@
+# This repo has been migrated
+
+I am moving development of e3j to https://github.com/curtischong/e3simple because I realized that the formulation for irreps isn't that straightforward. Rather than storing irreps in matrices, I changed it to be stored in classes so it's easier to understood in the new e3simple repo
+
+This repo isn't also very accessible because it's written in jax and to get compilation to work, the logic had to be changed (e.g. in tensor product) so it wasn't very readable.
+
+
 # e3j
 
 This is my equivariant graph neural network library. I have one goal only:
