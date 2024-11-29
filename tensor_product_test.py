@@ -3,6 +3,7 @@ from tensor_product import tensor_product_v1, tensor_product_v2
 import jax.numpy as jnp
 from e3nn_jax import tensor_product
 import e3nn_jax
+import jax
 
 
 def test_same_results_across_versions():
@@ -11,7 +12,7 @@ def test_same_results_across_versions():
 
     irrep1 = map_3d_feats_to_spherical_harmonics_repr(jnp.expand_dims(feat1, axis=0))
     irrep2 = map_3d_feats_to_spherical_harmonics_repr(jnp.expand_dims(feat2, axis=0))
-    v1_res = tensor_product_v1(irrep1, irrep2, max_l3=5)
+    v1_res = tensor_product_v1(irrep1, irrep2)
     v2_res = tensor_product_v2(irrep1, irrep2)
     print("v1 res:", v1_res)
     print("v2 res:", v2_res)
@@ -28,7 +29,7 @@ def test_matches_e3nn():
     print(irrep1)
     print(irrep2)
 
-    print(tensor_product_v1(irrep1, irrep2).tolist())
+    print(tensor_product_v2(irrep1, irrep2).tolist())
 
 
     e3nn_irrep1 = e3nn_jax.spherical_harmonics("1x0e + 1x1o", feat1, normalize=True, normalization="norm")
@@ -65,4 +66,6 @@ def test_matches_e3nn():
     # print("Resulting coefficients:", result)
 
 if __name__ == "__main__":
-    test_same_results_across_versions()
+    with jax.disable_jit():
+        test_matches_e3nn()
+        # test_same_results_across_versions()

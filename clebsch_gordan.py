@@ -2,12 +2,13 @@ from functools import lru_cache
 import e3nn_jax
 # from e3x.so3 import clebsch_gordan
 from e3nn.o3._wigner import _so3_clebsch_gordan
-from e3x.so3._symbolic import _clebsch_gordan
+# from e3x.so3._symbolic import _clebsch_gordan
 
 
 def get_clebsch_gordan(l1: int, l2: int, l3: int, m1: int, m2: int, m3: int) -> float:
     # cg = _get_clebsch_gordan(l1, l2, l3)
-    res = float(_clebsch_gordan(l1, l2, l3, m1,m2,m3).evalf())
+    # res = float(_clebsch_gordan(l1, l2, l3, m1,m2,m3).evalf())
+    res = e3nn_jax.clebsch_gordan(l1, l2, l3)[m1 + l1, m2 + l2, m3 + l3]
     return res
     # print("e3nn cg shape", cg.shape)
 
